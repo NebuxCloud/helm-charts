@@ -1,0 +1,6 @@
+dependencies:
+- name: stateless
+  repository: oci://registry.nebux.dev/charts
+  version: 1.0.0
+digest: sha256:618b992c038ef0c3c368a54025f9b5beadd1078553a7f147faea2ddcf31b484f
+generated: "2025-02-05T15:55:54.763590462Z"
