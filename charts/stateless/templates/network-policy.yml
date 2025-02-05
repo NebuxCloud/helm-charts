@@ -1,0 +1,34 @@
+{{- range $workloadKey, $workload := .Values.workloads }}
+{{- if $workload.networkPolicy }}
+{{- $hasComponents := gt (len $.Values.workloads) 1 }}
+---
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+
+metadata:
+  name: "{{ $.Release.Name }}{{ if $hasComponents }}-{{ $workloadKey }}{{ end }}"
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}"
+    {{- if $hasComponents }}
+    app.kubernetes.io/component: "{{ $workloadKey }}"
+    {{- end }}
+
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: "{{ $.Release.Name }}"
+      {{- if $hasComponents }}
+      app.kubernetes.io/component: "{{ $workloadKey }}"
+      {{- end }}
+
+  policyTypes:
+  {{- range $policyType, $policyConfig := $workload.networkPolicy }}
+    - "{{ camelcase $policyType }}"
+  {{- end }}
+
+  {{- range $policyType, $policyConfig := $workload.networkPolicy }}
+  {{ $policyType }}: {{ toYaml $policyConfig | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,42 @@
+{{- range $ingress := .Values.ingresses }}
+{{- $hasIngresses := gt (len $.Values.ingresses) 1 }}
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+
+metadata:
+  name: "{{ $.Release.Name }}{{ if $hasIngresses }}-{{ $ingress.name }}{{ end }}"
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}"
+  {{- if $ingress.annotations }}
+  annotations: {{ toYaml $ingress.annotations | nindent 4 }}
+  {{- end }}
+
+spec:
+  {{ if $ingress.className -}}
+  ingressClassName: "{{ $ingress.className }}"
+  {{- end }}
+
+  rules:
+    {{- range $host := $ingress.hosts }}
+    - host: "{{ $host.name }}"
+      http:
+        paths:
+          - pathType: Prefix
+            path: "{{ $host.path }}"
+            backend:
+              service:
+                {{- if and (hasKey $ingress "service") (hasKey $ingress.service "absoluteName") }}
+                name: "{{ $ingress.service.absoluteName }}"
+                {{- else }}
+                {{- $hasRelativeName := and (hasKey $ingress "service") (hasKey $ingress.service "name") }}
+                name: "{{ $.Release.Name }}{{ if $hasRelativeName }}-{{ $ingress.service.name }}{{ end }}"
+                {{- end }}
+                port:
+                  name: "{{ dig "service" "port" "http" $ingress }}"
+    {{- end }}
+
+  tls:
+    - secretName: "{{ $ingress.tlsSecretName }}"
+{{- end }}

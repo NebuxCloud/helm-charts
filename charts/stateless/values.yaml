@@ -1,0 +1,108 @@
+workloads: {}
+  #default:
+  #  replicas: 1
+  #  revisionHistoryLimit: 10
+  #
+  #  strategy:
+  #    rollingUpdate:
+  #      maxUnavailable: 1
+  #      maxSurge: 1
+  #    blueGreenUpdate:
+  #      currentSlot: ""
+  #      targetSlot: ""
+  #      pastReplicas: 1
+  #
+  #  initContainers: {}
+  #
+  #  containers:
+  #    default:
+  #      image: ""
+  #      image:
+  #        blue: ""
+  #        green: ""
+  #      command: []
+  #      args: []
+  #      envFrom:
+  #        configMaps: []
+  #        secrets: []
+  #      env: []
+  #      volumeMounts: []
+  #      resources:
+  #        requests:
+  #          cpu: 100m
+  #          memory: 128Mi
+  #        limits:
+  #          cpu: 200m
+  #          memory: 256Mi
+  #      ports:
+  #        - name: http
+  #          containerPort: 8080
+  #      probes:
+  #        startup: {}
+  #        readiness: {}
+  #        liveness:
+  #          httpGet:
+  #            path: /_health
+  #            port: http
+  #          initialDelaySeconds: 10
+  #      securityContext: {}
+  #
+  #  securityContext: {}
+  #
+  #  volumes: []
+  #
+  #  imagePullSecrets:
+  #    - name: registry
+  #
+  #  autoscaling:
+  #    targetCPUUtilizationPercentage: 90
+  #    replicas:
+  #      min: 2
+  #      max: 6
+  #
+  #  disruptionBudget:
+  #    maxUnavailable: 1
+  #    minAvailable: 1
+  #
+  #  networkPolicy:
+  #    ingress:
+  #      - ports:
+  #          - port: http
+  #        from:
+  #          - namespaceSelector:
+  #              matchLabels:
+  #                kubernetes.io/metadata.name: networking
+  #          - podSelector:
+  #              matchLabels:
+  #                app.kubernetes.io/instance: ingress-controller
+  #
+  #  service:
+  #    annotations:
+  #      service.kubernetes.io/topology-mode: Auto
+  #    type: ClusterIP
+  #    externalTrafficPolicy: Cluster
+  #    ports:
+  #      - name: http
+  #        port: 80
+  #        targetPort: http
+
+configMaps: {}
+
+# Don't add secrets here in version-controlled files, as they would be exposed!
+# This object should only contain empty keys for documentation purposes.
+secrets: {}
+
+ingresses: []
+#  - name: default
+#    annotations: {}
+#    className: public
+#    hosts:
+#      - name: example.org
+#        path: /
+#      - name: www.example.org
+#        path: /
+#    tlsSecretName: certificate-example-org
+#    service:
+#      name: ""
+#      absoluteName: ""
+#      port: 

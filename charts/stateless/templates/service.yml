@@ -1,0 +1,41 @@
+{{- range $workloadKey, $workload := .Values.workloads }}
+{{- if $workload.service }}
+{{- $hasComponents := gt (len $.Values.workloads) 1 }}
+{{- $isBlueGreen := hasKey $workload.strategy "blueGreenUpdate" }}
+---
+kind: Service
+apiVersion: v1
+
+metadata:
+  name: "{{ $.Release.Name }}{{ if $hasComponents }}-{{ $workloadKey }}{{ end }}"
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}"
+    {{- if $hasComponents }}
+    app.kubernetes.io/component: "{{ $workloadKey }}"
+    {{- end }}
+  {{- if $workload.service.annotations }}
+  annotations: {{ toYaml $workload.service.annotations | nindent 4 }}
+  {{- end }}
+
+spec:
+  selector:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}"
+    {{- if $hasComponents }}
+    app.kubernetes.io/component: "{{ $workloadKey }}"
+    {{- end }}
+    {{- if $isBlueGreen }}
+    app.kubernetes.io/slot: "{{ $workload.strategy.blueGreenUpdate.targetSlot }}"
+    {{- end }}
+
+  {{- if hasKey $workload.service "type" }}
+  type: "{{ $workload.service.type }}"
+  {{- end }}
+
+  {{- if hasKey $workload.service "externalTrafficPolicy" }}
+  externalTrafficPolicy: "{{ $workload.service.externalTrafficPolicy }}"
+  {{- end }}
+
+  ports: {{ toYaml $workload.service.ports | nindent 4 }}
+{{- end }}
+{{- end }}
