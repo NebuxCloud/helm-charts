@@ -1,8 +1,8 @@
 apiVersion: v2
 name: hidra
 type: application
-version: "1.0.0"
-appVersion: "3.4.3"
+version: "1.0.1"
+appVersion: "3.4.4"
 
 dependencies:
   - alias: root
