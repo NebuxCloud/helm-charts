@@ -11,9 +11,11 @@ root:
       containers:
         default:
           image: ghcr.io/hidracloud/hidra:v3.4.4
+          command:
+            - hidra
           args:
             - exporter
-            - /etc/hidra/exporter.yml
+            - /etc/hidra/hidra.yml
           envFrom:
             configMaps:
               - env
@@ -63,17 +65,7 @@ root:
       disruptionBudget:
         maxUnavailable: 1
 
-      networkPolicy:
-        ingress:
-          - ports:
-              - port: http
-            from:
-              - namespaceSelector:
-                  matchLabels:
-                    kubernetes.io/metadata.name: networking
-              - podSelector:
-                  matchLabels:
-                    app.kubernetes.io/instance: traefik-proxy
+      networkPolicy: {}
 
       service:
         annotations:

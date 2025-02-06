@@ -1,7 +1,7 @@
 apiVersion: v2
 name: hidra
 type: application
-version: "1.0.1"
+version: "1.0.2"
 appVersion: "3.4.4"
 
 dependencies:
