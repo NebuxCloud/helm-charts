@@ -1,6 +1,7 @@
 root:
   workloads:
     default:
+      replicas: 2
       revisionHistoryLimit: 10
 
       strategy:
@@ -55,12 +56,6 @@ root:
         - name: samples
           configMap:
             name: samples
-
-      autoscaling:
-        targetCPUUtilizationPercentage: 90
-        replicas:
-          min: 2
-          max: 4
 
       disruptionBudget:
         maxUnavailable: 1
