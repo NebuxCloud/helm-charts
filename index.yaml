@@ -3,6 +3,20 @@ entries:
   hidra:
   - apiVersion: v2
     appVersion: 3.4.4
+    created: "2025-02-06T12:49:38.440016321Z"
+    dependencies:
+    - alias: root
+      name: stateless
+      repository: oci://registry.nebux.dev/charts
+      version: 1.0.0
+    digest: cc1f562cb18a45ca13414cf44a09d4485ffb66a43113ff6bb09eb33d723ef426
+    name: hidra
+    type: application
+    urls:
+    - https://github.com/NebuxCloud/helm-charts/releases/download/hidra-1.0.3/hidra-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: 3.4.4
     created: "2025-02-06T09:52:49.119568287Z"
     dependencies:
     - alias: root
@@ -52,4 +66,4 @@ entries:
     urls:
     - https://github.com/NebuxCloud/helm-charts/releases/download/stateless-1.0.0/stateless-1.0.0.tgz
     version: 1.0.0
-generated: "2025-02-06T09:52:49.119585429Z"
+generated: "2025-02-06T12:49:38.440034816Z"
