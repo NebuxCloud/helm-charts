@@ -59,6 +59,14 @@ entries:
     version: 1.0.0
   stateless:
   - apiVersion: v2
+    created: "2025-08-22T10:24:50.73178638Z"
+    digest: 504b9a2a9f0b15fa2c7222394d427bd5aeef8e60982757329af322893bc4e6e9
+    name: stateless
+    type: application
+    urls:
+    - https://github.com/NebuxCloud/helm-charts/releases/download/stateless-1.0.1/stateless-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
     created: "2025-02-05T15:22:41.909986848Z"
     digest: 3c6806a3aa542d402479d913883e0ff1f8d4db9b4b7786130559ea2368268070
     name: stateless
@@ -66,4 +74,4 @@ entries:
     urls:
     - https://github.com/NebuxCloud/helm-charts/releases/download/stateless-1.0.0/stateless-1.0.0.tgz
     version: 1.0.0
-generated: "2025-02-06T12:49:38.440034816Z"
+generated: "2025-08-22T10:24:50.731808231Z"
