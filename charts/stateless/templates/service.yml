@@ -32,6 +32,10 @@ spec:
   type: "{{ $workload.service.type }}"
   {{- end }}
 
+  {{- if hasKey $workload.service "loadBalancerClass" }}
+  loadBalancerClass: "{{ $workload.service.loadBalancerClass }}"
+  {{- end }}
+
   {{- if hasKey $workload.service "externalTrafficPolicy" }}
   externalTrafficPolicy: "{{ $workload.service.externalTrafficPolicy }}"
   {{- end }}
