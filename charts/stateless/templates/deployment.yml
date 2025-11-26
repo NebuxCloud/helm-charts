@@ -184,6 +184,9 @@ spec:
           secret:
             secretName: "{{ $.Release.Name }}{{ if gt (len $.Values.secrets) 1 }}-{{ $volume.secret.secretName }}{{ end }}"
           {{- end }}
+          {{- if hasKey $volume "hostPath" }}
+          hostPath: {{ toYaml $volume.hostPath | nindent 12 }}
+          {{- end }}
         {{- end }}
       {{- end }}
 
