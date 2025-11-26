@@ -1,0 +1,71 @@
+{{- range $httpRoute := .Values.httpRoutes }}
+{{- $hasHttpRoutes := gt (len $.Values.httpRoutes) 1 }}
+---
+kind: HTTPRoute
+apiVersion: gateway.networking.k8s.io/v1
+
+metadata:
+  name: "{{ $.Release.Name }}{{ if $hasHttpRoutes }}-{{ $httpRoute.name }}{{ end }}"
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}"
+
+spec:
+  {{- if hasKey $httpRoute "parentRefs" }}
+  parentRefs: {{ toYaml $httpRoute.parentRefs | nindent 4 }}
+  {{- end }}
+
+  {{- if hasKey $httpRoute "hostnames" }}
+  hostnames: {{ toYaml $httpRoute.hostnames | nindent 4 }}
+  {{- end }}
+
+  rules:
+    {{- range $rule := $httpRoute.rules }}
+    - matches: {{ toYaml $rule.matches | nindent 8 }}
+
+      {{- if hasKey $rule "name" }}
+      name: {{ toYaml $rule.name | nindent 8 }}
+      {{- end }}
+
+      {{- if hasKey $rule "filters" }}
+      filters: {{ toYaml $rule.filters | nindent 8 }}
+      {{- end }}
+
+      {{- if hasKey $rule "timeouts" }}
+      timeouts: {{ toYaml $rule.timeouts | nindent 8 }}
+      {{- end }}
+
+      {{- if hasKey $rule "backendRefs" }}
+      backendRefs:
+        {{- range $backendRef := $rule.backendRefs }}
+        - port: {{ dig "port" "80" $backendRef }}
+
+          {{- if hasKey $backendRef "name" }}
+          {{- if hasPrefix "@" $backendRef.name }}
+          name: "{{ $.Release.Name }}-{{ trimPrefix "@" $backendRef.name }}"
+          {{- else }}
+          name: "{{ $backendRef.name }}"
+          {{- end }}
+          {{- else }}
+          name: "{{ $.Release.Name }}"
+          {{- end }}
+          
+          {{- if hasKey $backendRef "group" }}
+          group: {{ toYaml $backendRef.group | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $backendRef "kind" }}
+          kind: {{ toYaml $backendRef.kind | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $backendRef "namespace" }}
+          namespace: {{ toYaml $backendRef.namespace | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $backendRef "filters" }}
+          filters: {{ toYaml $backendRef.filters | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+{{- end }}

@@ -93,6 +93,42 @@ configMaps: {}
 # This object should only contain empty keys for documentation purposes.
 secrets: {}
 
+httpRoutes: []
+#  - name: default
+#    parentRefs:
+#      - name: default
+#    hostnames:
+#      - example.org
+#      - www.example.org
+#    rules:
+#      # default service (if there's only one) and port (80)
+#      - matches:
+#          - path:
+#              value: /
+#        backendRefs: [{}]
+#      # default service (if there's only one)
+#      - matches:
+#          - path:
+#              value: /foo
+#        backendRefs:
+#          - port: 81
+#      # relative service ("<releaseName>-component")
+#      - matches:
+#          - path:
+#              value: /bar
+#        backendRefs:
+#          - name: "@component"
+#      # another service
+#      - matches:
+#          - path:
+#              value: /another
+#        backendRefs:
+#          - name: another-service
+#      # return 404
+#      - matches:
+#          - path:
+#              value: /private
+
 ingresses: []
 #  - name: default
 #    annotations: {}
