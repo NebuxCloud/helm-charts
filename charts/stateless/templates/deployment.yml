@@ -121,6 +121,10 @@ spec:
           command: {{ toYaml $container.command | nindent 12 }}
           {{- end }}
 
+          {{- if hasKey $container "lifecycle" }}
+          lifecycle: {{ toYaml $container.lifecycle | nindent 12 }}
+          {{- end }}
+
           {{- if hasKey $container "args" }}
           args: {{ toYaml $container.args | nindent 12 }}
           {{- end }}

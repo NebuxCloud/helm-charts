@@ -22,6 +22,7 @@ workloads: {}
   #        green: ""
   #      command: []
   #      args: []
+  #      lifecycle: {}
   #      envFrom:
   #        configMaps: []
   #        secrets: []
