@@ -23,7 +23,7 @@ spec:
     - host: "{{ $host.name }}"
       http:
         paths:
-          - pathType: Prefix
+          - pathType: "{{ dig "pathType" "Prefix" $host }}"
             path: "{{ $host.path }}"
             backend:
               service:
