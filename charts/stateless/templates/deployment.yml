@@ -104,6 +104,36 @@ spec:
                         - "{{ $slot }}"
                     {{- end }}
 
+      {{- if hasKey $workload "restartPolicy" }}
+      restartPolicy: {{ toYaml $workload.restartPolicy | nindent 8 }}
+      {{- end }}
+
+      {{- if hasKey $workload "imagePullSecrets" }}
+      imagePullSecrets: {{ toYaml $workload.imagePullSecrets | nindent 8 }}
+      {{- end }}
+
+      {{- if hasKey $workload "volumes" }}
+      volumes:
+        {{- range $volume := $workload.volumes }}
+        - name: "{{ $volume.name }}"
+          {{- if hasKey $volume "configMap" }}
+          configMap:
+            name: "{{ $.Release.Name }}{{ if gt (len $.Values.configMaps) 1 }}-{{ $volume.configMap.name }}{{ end }}"
+          {{- end }}
+          {{- if hasKey $volume "secret" }}
+          secret:
+            secretName: "{{ $.Release.Name }}{{ if gt (len $.Values.secrets) 1 }}-{{ $volume.secret.secretName }}{{ end }}"
+          {{- end }}
+          {{- if hasKey $volume "hostPath" }}
+          hostPath: {{ toYaml $volume.hostPath | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+
+      {{- if hasKey $workload "securityContext" }}
+      securityContext: {{ toYaml $workload.securityContext | nindent 8 }}
+      {{- end }}
+
       {{- range $containerType := tuple "initContainers" "containers" }}
       {{- if hasKey $workload $containerType }}
       {{ $containerType }}:
@@ -121,12 +151,16 @@ spec:
           command: {{ toYaml $container.command | nindent 12 }}
           {{- end }}
 
-          {{- if hasKey $container "lifecycle" }}
-          lifecycle: {{ toYaml $container.lifecycle | nindent 12 }}
-          {{- end }}
-
           {{- if hasKey $container "args" }}
           args: {{ toYaml $container.args | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $container "restartPolicy" }}
+          restartPolicy: {{ toYaml $container.restartPolicy | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $container "lifecycle" }}
+          lifecycle: {{ toYaml $container.lifecycle | nindent 12 }}
           {{- end }}
 
           {{- if hasKey $container "envFrom" }}
@@ -166,32 +200,6 @@ spec:
           {{- end }}
         {{- end }}
       {{- end }}
-      {{- end }}
-
-      {{- if hasKey $workload "securityContext" }}
-      securityContext: {{ toYaml $workload.securityContext | nindent 8 }}
-      {{- end }}
-
-      {{- if hasKey $workload "volumes" }}
-      volumes:
-        {{- range $volume := $workload.volumes }}
-        - name: "{{ $volume.name }}"
-          {{- if hasKey $volume "configMap" }}
-          configMap:
-            name: "{{ $.Release.Name }}{{ if gt (len $.Values.configMaps) 1 }}-{{ $volume.configMap.name }}{{ end }}"
-          {{- end }}
-          {{- if hasKey $volume "secret" }}
-          secret:
-            secretName: "{{ $.Release.Name }}{{ if gt (len $.Values.secrets) 1 }}-{{ $volume.secret.secretName }}{{ end }}"
-          {{- end }}
-          {{- if hasKey $volume "hostPath" }}
-          hostPath: {{ toYaml $volume.hostPath | nindent 12 }}
-          {{- end }}
-        {{- end }}
-      {{- end }}
-
-      {{- if hasKey $workload "imagePullSecrets" }}
-      imagePullSecrets: {{ toYaml $workload.imagePullSecrets | nindent 8 }}
       {{- end }}
 {{- end }}
 {{- end }}

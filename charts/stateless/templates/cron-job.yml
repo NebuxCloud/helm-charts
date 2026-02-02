@@ -1,0 +1,171 @@
+{{- range $cronJobKey, $cronJob := .Values.cronJobs }}
+{{- $hasComponents := gt (len $.Values.cronJobs) 1 }}
+---
+kind: CronJob
+apiVersion: batch/v1
+
+metadata:
+  name: "{{ $.Release.Name }}{{ if $hasComponents }}-{{ $cronJobKey }}{{ end }}"
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}"
+    {{- if $hasComponents }}
+    app.kubernetes.io/component: "{{ $cronJobKey }}"
+    {{- end }}
+
+spec:
+  schedule: "{{ $cronJob.schedule }}"
+  {{- if hasKey $cronJob "startingDeadlineSeconds" }}
+  startingDeadlineSeconds: {{ toYaml $cronJob.startingDeadlineSeconds | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $cronJob "concurrencyPolicy" }}
+  concurrencyPolicy: {{ toYaml $cronJob.concurrencyPolicy | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $cronJob "suspend" }}
+  suspend: {{ toYaml $cronJob.suspend | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $cronJob "successfulJobsHistoryLimit" }}
+  successfulJobsHistoryLimit: {{ toYaml $cronJob.successfulJobsHistoryLimit | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $cronJob "failedJobsHistoryLimit" }}
+  failedJobsHistoryLimit: {{ toYaml $cronJob.failedJobsHistoryLimit | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $cronJob "timeZone" }}
+  timeZone: {{ toYaml $cronJob.timeZone | nindent 4 }}
+  {{- end }}
+
+  jobTemplate:
+    spec:
+      {{- if hasKey $cronJob "completionMode" }}
+      completionMode: {{ toYaml $cronJob.completionMode | nindent 8 }}
+      {{- end }}
+      {{- if hasKey $cronJob "completions" }}
+      completions: {{ toYaml $cronJob.completions | nindent 8 }}
+      {{- end }}
+      {{- if hasKey $cronJob "completions-1" }}
+      completions-1: {{ index $cronJob "completions-1" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if hasKey $cronJob "parallelism" }}
+      parallelism: {{ toYaml $cronJob.parallelism | nindent 8 }}
+      {{- end }}
+      {{- if hasKey $cronJob "backoffLimit" }}
+      backoffLimit: {{ toYaml $cronJob.backoffLimit | nindent 8 }}
+      {{- end }}
+      {{- if hasKey $cronJob "backoffLimitPerIndex" }}
+      backoffLimitPerIndex: {{ toYaml $cronJob.backoffLimitPerIndex | nindent 8 }}
+      {{- end }}
+      {{- if hasKey $cronJob "maxFailedIndexes" }}
+      maxFailedIndexes: {{ toYaml $cronJob.maxFailedIndexes | nindent 8 }}
+      {{- end }}
+      {{- if hasKey $cronJob "podFailurePolicy" }}
+      podFailurePolicy: {{ toYaml $cronJob.podFailurePolicy | nindent 8 }}
+      {{- end }}
+      {{- if hasKey $cronJob "podReplacementPolicy" }}
+      podReplacementPolicy: {{ toYaml $cronJob.podReplacementPolicy | nindent 8 }}
+      {{- end }}
+      {{- if hasKey $cronJob "successPolicy" }}
+      successPolicy: {{ toYaml $cronJob.successPolicy | nindent 8 }}
+      {{- end }}
+      {{- if hasKey $cronJob "activeDeadlineSeconds" }}
+      activeDeadlineSeconds: {{ toYaml $cronJob.activeDeadlineSeconds | nindent 8 }}
+      {{- end }}
+      {{- if hasKey $cronJob "ttlSecondsAfterFinished" }}
+      ttlSecondsAfterFinished: {{ toYaml $cronJob.ttlSecondsAfterFinished | nindent 8 }}
+      {{- end }}
+
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/instance: "{{ $.Release.Name }}"
+            {{- if $hasComponents }}
+            app.kubernetes.io/component: "{{ $cronJobKey }}"
+            {{- end }}
+          annotations:
+            configmaps-hash: "{{ $.Values.configMaps | toYaml | sha256sum | trunc 8 }}"
+            secrets-hash: "{{ $.Values.secrets | toYaml | sha256sum | trunc 8 }}"
+
+        spec:
+          {{- if hasKey $cronJob "restartPolicy" }}
+          restartPolicy: {{ toYaml $cronJob.restartPolicy | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $cronJob "imagePullSecrets" }}
+          imagePullSecrets: {{ toYaml $cronJob.imagePullSecrets | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $cronJob "volumes" }}
+          volumes:
+            {{- range $volume := $cronJob.volumes }}
+            - name: "{{ $volume.name }}"
+              {{- if hasKey $volume "configMap" }}
+              configMap:
+                name: "{{ $.Release.Name }}{{ if gt (len $.Values.configMaps) 1 }}-{{ $volume.configMap.name }}{{ end }}"
+              {{- end }}
+              {{- if hasKey $volume "secret" }}
+              secret:
+                secretName: "{{ $.Release.Name }}{{ if gt (len $.Values.secrets) 1 }}-{{ $volume.secret.secretName }}{{ end }}"
+              {{- end }}
+              {{- if hasKey $volume "hostPath" }}
+              hostPath: {{ toYaml $volume.hostPath | nindent 16 }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+
+          {{- if hasKey $cronJob "securityContext" }}
+          securityContext: {{ toYaml $cronJob.securityContext | nindent 12 }}
+          {{- end }}
+
+          {{- range $containerType := tuple "initContainers" "containers" }}
+          {{- if hasKey $cronJob $containerType }}
+          {{ $containerType }}:
+            {{- range $containerName, $container := index $cronJob $containerType }}
+            - name: "{{ $containerName }}"
+              image: "{{ $container.image }}"
+
+              {{- if hasKey $container "command" }}
+              command: {{ toYaml $container.command | nindent 16 }}
+              {{- end }}
+
+              {{- if hasKey $container "args" }}
+              args: {{ toYaml $container.args | nindent 16 }}
+              {{- end }}
+
+              {{- if hasKey $container "restartPolicy" }}
+              restartPolicy: {{ toYaml $container.restartPolicy | nindent 16 }}
+              {{- end }}
+
+              {{- if hasKey $container "lifecycle" }}
+              lifecycle: {{ toYaml $container.lifecycle | nindent 16 }}
+              {{- end }}
+
+              {{- if hasKey $container "envFrom" }}
+              envFrom:
+                {{- range $configMap := $container.envFrom.configMaps }}
+                - configMapRef:
+                    name: "{{ $.Release.Name }}{{ if gt (len $.Values.configMaps) 1 }}-{{ $configMap }}{{ end }}"
+                {{- end }}
+                {{- range $secret := $container.envFrom.secrets }}
+                - secretRef:
+                    name: "{{ $.Release.Name }}{{ if gt (len $.Values.secrets) 1 }}-{{ $secret }}{{ end }}"
+                {{- end }}
+              {{- end }}
+
+              {{- if hasKey $container "env" }}
+              env: {{ toYaml $container.env | nindent 16 }}
+              {{- end }}
+
+              {{- if hasKey $container "volumeMounts" }}
+              volumeMounts: {{ toYaml $container.volumeMounts | nindent 16 }}
+              {{- end }}
+
+              {{- if hasKey $container "resources" }}
+              resources: {{ toYaml $container.resources | nindent 16 }}
+              {{- end }}
+
+              {{- if hasKey $container "securityContext" }}
+              securityContext: {{ toYaml $container.securityContext | nindent 16 }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
+{{- end }}

@@ -12,8 +12,13 @@ workloads: {}
   #      targetSlot: ""
   #      pastReplicas: 1
   #
-  #  initContainers: {}
+  #  restartPolicy: Always
+  #  imagePullSecrets:
+  #    - name: registry
+  #  volumes: []
+  #  securityContext: {}
   #
+  #  initContainers: {}
   #  containers:
   #    default:
   #      image: ""
@@ -22,6 +27,7 @@ workloads: {}
   #        green: ""
   #      command: []
   #      args: []
+  #      restartPolicy: Always
   #      lifecycle: {}
   #      envFrom:
   #        configMaps: []
@@ -47,13 +53,6 @@ workloads: {}
   #            port: http
   #          initialDelaySeconds: 10
   #      securityContext: {}
-  #
-  #  securityContext: {}
-  #
-  #  volumes: []
-  #
-  #  imagePullSecrets:
-  #    - name: registry
   #
   #  autoscaling:
   #    targetCPUUtilizationPercentage: 90
@@ -86,6 +85,57 @@ workloads: {}
   #      - name: http
   #        port: 80
   #        targetPort: http
+
+cronJobs: {}
+#  default:
+#    schedule: "* * * * *"
+#    startingDeadlineSeconds: null
+#    concurrencyPolicy: Allow
+#    suspend: false
+#    successfulJobsHistoryLimit: 3
+#    failedJobsHistoryLimit: 1
+#    timeZone: "Etc/UTC"
+#
+#    completionMode: NonIndexed
+#    completions: null
+#    completions-1: null
+#    parallelism: null
+#    backoffLimit: null
+#    backoffLimitPerIndex: null
+#    maxFailedIndexes: null
+#    podFailurePolicy: null
+#    podReplacementPolicy: null
+#    successPolicy: null
+#    activeDeadlineSeconds: null
+#    ttlSecondsAfterFinished: null
+#  
+#    restartPolicy: Always
+#    securityContext: {}
+#    volumes: []
+#    imagePullSecrets:
+#      - name: registry
+#
+#    initContainers: {}
+#    containers:
+#      default:
+#        image: ""
+#        command: []
+#        args: []
+#        restartPolicy: Always
+#        lifecycle: {}
+#        envFrom:
+#          configMaps: []
+#          secrets: []
+#        env: []
+#        volumeMounts: []
+#        resources:
+#          requests:
+#            cpu: 100m
+#            memory: 128Mi
+#          limits:
+#            cpu: 200m
+#            memory: 256Mi
+#        securityContext: {}
 
 configMaps: {}
 
@@ -140,6 +190,6 @@ ingresses: []
 #        path: /
 #    tlsSecretName: certificate-example-org
 #    service:
-#      name: ""
-#      absoluteName: ""
-#      port: 
+#      name:
+#      absoluteName:
+#      port:
