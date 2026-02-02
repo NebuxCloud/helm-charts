@@ -1,0 +1,21 @@
+{{- range $referenceGrant := .Values.referenceGrants }}
+{{- $hasReferenceGrants := gt (len $.Values.referenceGrants) 1 }}
+---
+kind: ReferenceGrant
+apiVersion: gateway.networking.k8s.io/v1beta1
+
+metadata:
+  name: "{{ $.Release.Name }}{{ if $hasReferenceGrants }}-{{ $referenceGrant.name }}{{ end }}"
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}"
+
+spec:
+  {{- if hasKey $referenceGrant "from" }}
+  from: {{ toYaml $referenceGrant.from | nindent 4 }}
+  {{- end }}
+
+  {{- if hasKey $referenceGrant "to" }}
+  to: {{ toYaml $referenceGrant.to | nindent 4 }}
+  {{- end }}
+{{- end }}
