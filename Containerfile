@@ -5,7 +5,7 @@ ARG KUBECTL_VERSION=1.32.1-*
 ARG KUBECTX_VERSION=0.9.5
 
 
-FROM debian:${DEBIAN_VERSION}
+FROM docker.io/debian:${DEBIAN_VERSION}
 
 WORKDIR /usr/src/app
 
