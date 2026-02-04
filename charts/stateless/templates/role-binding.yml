@@ -1,0 +1,58 @@
+{{- range $binding := .Values.roleBindings }}
+{{- if hasKey $binding "namespaces" }}
+{{- $name := default $binding.ref.name $binding.name }}
+{{- range $namespace := $binding.namespaces }}
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+
+metadata:
+  {{- if hasPrefix "@" $name }}
+  name: "{{ $.Release.Name }}{{ if ne $name "@" }}-{{ trimPrefix "@" $name }}{{ end }}"
+  {{- else }}
+  name: "{{ $name }}"
+  {{- end }}
+
+  {{- if eq $namespace "@" }}
+  namespace: "{{ $.Release.Namespace }}"
+  {{- else }}
+  namespace: "{{ $namespace }}"
+  {{- end }}
+
+  labels:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}"
+
+roleRef:
+  kind: "{{ $binding.ref.kind }}"
+  apiGroup: rbac.authorization.k8s.io
+
+  {{- if hasPrefix "@" $binding.ref.name }}
+  name: "{{ $.Release.Name }}{{ if ne $binding.ref.name "@" }}-{{ trimPrefix "@" $binding.ref.name }}{{ end }}"
+  {{- else }}
+  name: "{{ $binding.ref.name }}"
+  {{- end }}
+
+subjects:
+  {{- range $subject := $binding.subjects }}
+  - kind: "{{ $subject.kind }}"
+    {{- if ne $subject.kind "ServiceAccount" }}
+    apiGroup: rbac.authorization.k8s.io
+    {{- end }}
+
+    {{- if hasPrefix "@" $subject.name }}
+    name: "{{ $.Release.Name }}{{ if ne $subject.name "@" }}-{{ trimPrefix "@" $subject.name }}{{ end }}"
+    {{- else }}
+    name: "{{ $subject.name }}"
+    {{- end }}
+
+    {{- if hasKey $subject "namespace" }}
+    {{- if eq $subject.namespace "@" }}
+    namespace: "{{ $.Release.Namespace }}"
+    {{- else }}
+    namespace: "{{ $subject.namespace }}"
+    {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

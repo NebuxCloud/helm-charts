@@ -134,6 +134,14 @@ spec:
       securityContext: {{ toYaml $workload.securityContext | nindent 8 }}
       {{- end }}
 
+      {{- if hasKey $workload "serviceAccountName" }}
+      {{- if hasPrefix "@" $workload.serviceAccountName }}
+      serviceAccountName: "{{ $.Release.Name }}{{ if ne $workload.serviceAccountName "@" }}-{{ trimPrefix "@" $workload.serviceAccountName }}{{ end }}"
+      {{- else }}
+      serviceAccountName: "{{ $workload.serviceAccountName }}"
+      {{- end }}
+      {{- end }}
+
       {{- range $containerType := tuple "initContainers" "containers" }}
       {{- if hasKey $workload $containerType }}
       {{ $containerType }}:

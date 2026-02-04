@@ -17,6 +17,7 @@ workloads: {}
   #    - name: registry
   #  volumes: []
   #  securityContext: {}
+  #  serviceAccountName: ""
   #
   #  initContainers: {}
   #  containers:
@@ -110,10 +111,11 @@ cronJobs: {}
 #    ttlSecondsAfterFinished: null
 #  
 #    restartPolicy: Always
-#    securityContext: {}
-#    volumes: []
 #    imagePullSecrets:
 #      - name: registry
+#    volumes: []
+#    securityContext: {}
+#    serviceAccountName: ""
 #
 #    initContainers: {}
 #    containers:
@@ -193,3 +195,33 @@ ingresses: []
 #      name:
 #      absoluteName:
 #      port:
+
+serviceAccounts: {}
+#  - name: example
+#    namespace: default
+
+roleBindings: []
+#  - name: "" # optional, uses the ref's name if not defined
+#    namespaces: [] # empty to create cluster role bindings
+#    ref:
+#      kind: Role
+#      name: example
+#    subjects:
+#      - kind: ServiceAccount
+#        name: example
+#        namespace: default
+#    
+#  - namespaces:
+#      - default
+#      - kube-system
+#    ref:
+#      kind: ClusterRole
+#      name: view
+#    subjects:
+#      - kind: Group
+#        name: system:masters
+
+roles: []
+#  - name: example
+#    namespaces: [] # empty to create cluster roles
+#    rules: []

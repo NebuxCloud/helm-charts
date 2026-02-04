@@ -1,0 +1,27 @@
+{{- range $role := .Values.roles }}
+{{- if hasKey $role "namespaces" }}
+{{- range $namespace := $role.namespaces }}
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+
+metadata:
+  {{- if hasPrefix "@" $role.name }}
+  name: "{{ $.Release.Name }}{{ if ne $role.name "@" }}-{{ trimPrefix "@" $role.name }}{{ end }}"
+  {{- else }}
+  name: "{{ $role.name }}"
+  {{- end }}
+
+  {{- if eq $namespace "@" }}
+  namespace: "{{ $.Release.Namespace }}"
+  {{- else }}
+  namespace: "{{ $namespace }}"
+  {{- end }}
+
+  labels:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}"
+
+rules: {{ toYaml $role.rules | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end }}

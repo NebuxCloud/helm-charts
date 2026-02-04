@@ -115,6 +115,14 @@ spec:
           securityContext: {{ toYaml $cronJob.securityContext | nindent 12 }}
           {{- end }}
 
+          {{- if hasKey $cronJob "serviceAccountName" }}
+          {{- if hasPrefix "@" $cronJob.serviceAccountName }}
+          serviceAccountName: "{{ $.Release.Name }}{{ if ne $cronJob.serviceAccountName "@" }}-{{ trimPrefix "@" $cronJob.serviceAccountName }}{{ end }}"
+          {{- else }}
+          serviceAccountName: "{{ $cronJob.serviceAccountName }}"
+          {{- end }}
+          {{- end }}
+
           {{- range $containerType := tuple "initContainers" "containers" }}
           {{- if hasKey $cronJob $containerType }}
           {{ $containerType }}:
