@@ -130,6 +130,10 @@ spec:
             - name: "{{ $containerName }}"
               image: "{{ $container.image }}"
 
+              {{- if hasKey $container "imagePullPolicy" }}
+              imagePullPolicy: {{ toYaml $container.imagePullPolicy | nindent 16 }}
+              {{- end }}
+
               {{- if hasKey $container "command" }}
               command: {{ toYaml $container.command | nindent 16 }}
               {{- end }}

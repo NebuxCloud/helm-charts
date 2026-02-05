@@ -26,6 +26,7 @@ workloads: {}
   #      image:
   #        blue: ""
   #        green: ""
+  #      imagePullPolicy: IfNotPresent
   #      command: []
   #      args: []
   #      restartPolicy: Always
@@ -121,6 +122,7 @@ cronJobs: {}
 #    containers:
 #      default:
 #        image: ""
+#        imagePullPolicy: IfNotPresent
 #        command: []
 #        args: []
 #        restartPolicy: Always

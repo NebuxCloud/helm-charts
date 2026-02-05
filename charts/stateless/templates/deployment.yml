@@ -155,6 +155,10 @@ spec:
           image: "{{ index $container "image" $slot }}"
           {{- end }}
 
+          {{- if hasKey $container "imagePullPolicy" }}
+          imagePullPolicy: {{ toYaml $container.imagePullPolicy | nindent 12 }}
+          {{- end }}
+
           {{- if hasKey $container "command" }}
           command: {{ toYaml $container.command | nindent 12 }}
           {{- end }}
