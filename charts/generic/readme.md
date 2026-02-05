@@ -1,6 +1,6 @@
-# Stateless
+# Generic
 
-This chart allows deploying generic stateless workloads in Kubernetes (with as many deployments and as many containers per deployment as needed).
+This chart allows deploying generic workloads in Kubernetes (with as many deployments and as many containers per deployment as needed).
 
 It is designed to fit most use cases with a consistent approach, and it supports both rolling and blue-green deployments.
 
@@ -11,7 +11,7 @@ Using this chart reduces the complexity of deploying multiple projects in Kubern
 ### Manual
 
 ```console
-helm install <name> oci://registry.nebux.dev/charts/stateless --version <x.y.z>
+helm install <name> oci://registry.nebux.dev/charts/generic --version <x.y.z>
 ```
 
 ### In CI/CD pipeline
@@ -21,7 +21,7 @@ helm install <name> oci://registry.nebux.dev/charts/stateless --version <x.y.z>
 ```console
 helm upgrade --install \
     "<name>" \
-    oci://registry.nebux.dev/charts/stateless \
+    oci://registry.nebux.dev/charts/generic \
     --version <x.y.z> \
     --set-string "workloads.default.containers.default.image=<image>" \
     -f values.yml
@@ -46,7 +46,7 @@ REPLICAS_CURRENT=${REPLICAS_CURRENT:-1}
 
 helm upgrade --install \
     "<name>" \
-    oci://registry.nebux.dev/charts/stateless \
+    oci://registry.nebux.dev/charts/generic \
     --set-string "workloads.default.strategy.blueGreenUpdate.currentSlot=${SLOT_CURRENT}" \
     --set-string "workloads.default.strategy.blueGreenUpdate.targetSlot=${SLOT_PAST}" \
     --set-string "workloads.default.strategy.blueGreenUpdate.pastReplicas=${REPLICAS_PAST}" \
@@ -59,7 +59,7 @@ kubectl rollout status "deployment/<name>-${SLOT_CURRENT}" -w
 
 helm upgrade \
     "<name>" \
-    oci://registry.nebux.dev/charts/stateless \
+    oci://registry.nebux.dev/charts/generic \
     --set-string "workloads.default.strategy.blueGreenUpdate.targetSlot=${SLOT_CURRENT}" \
     --reuse-values
 ```
