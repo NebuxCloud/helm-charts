@@ -1,17 +1,42 @@
-# Generic
+<p align="center">
+    <a href="https://nebux.cloud">
+        <picture>
+            <source media="(prefers-color-scheme: dark)" srcset="https://nebux.cloud/assets/brand/imagotype_light.svg">
+            <img alt="Nebux logo" src="https://nebux.cloud/assets/brand/imagotype_dark.svg" height="60px">
+        </picture>
+    </a>
+</p>
 
-This chart allows deploying generic workloads in Kubernetes (with as many deployments and as many containers per deployment as needed).
+# Nebux Generic Helm Chart
 
-It is designed to fit most use cases with a consistent approach, and it supports both rolling and blue-green deployments.
+This Helm chart allows orchestrating generic workloads with Kubernetes, reducing the complexity of its API for the most common cases and avoiding the need to create and maintain a chart for each project.
 
-Using this chart reduces the complexity of deploying multiple projects in Kubernetes and eliminates the need to create and maintain a chart for each one.
+## Features
+
+- 🫧 **Workloads.** Define multiple workloads using [deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) and [cron jobs](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/), supporting all kinds of containers ([init](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/), [sidecar](https://kubernetes.io/docs/concepts/workloads/pods/sidecar-containers/) and main), startup/readiness/liveness probes, resource requests/limits, and volumes, among others.
+- ♟️ **Deployment strategies.** Deploy changes with a blue-green strategy (non-native in Kubernetes) as well as the native ones (rolling and recreate).
+- 📜 **Configuration.** Inject [config maps](https://kubernetes.io/docs/concepts/configuration/configmap/) and [secrets](https://kubernetes.io/docs/concepts/configuration/secret/) as environment variables, or mount them with [volumes](https://kubernetes.io/docs/concepts/storage/volumes/).
+- 🪜 **Scaling.** Scale workloads with [horizontal pod autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/).
+- 🌍 **Ingress/gateway.** Expose your workloads' services using the [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) and the [Gateway](https://gateway-api.sigs.k8s.io/) APIs.
+- 🔒 **Security.** Secure your workloads with [network policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/) and [security contexts](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) (at pod and container levels).
+- ❤️‍🩹 **Resilience.** Maximize availability with [pod disruption budgets](https://kubernetes.io/docs/tasks/run-application/configure-pdb/).
+- 🪪 **RBAC.** Full [RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) support with [service accounts](https://kubernetes.io/docs/concepts/security/service-accounts/), roles and bindings (at namespace and cluster level).
+- ⚖️ **FOSS.** Completely free and open-source under the GPL-3.0 license.
 
 ## Usage
+
+This chart is designed to deploy any workload with a short and easy-to-read values file (see examples below).
+
+Please check [the example values](values.yaml) to see all supported parameters. You can also find a real-life use case [here](https://github.com/NebuxCloud/botbuster?tab=readme-ov-file#helm).
 
 ### Manual
 
 ```console
-helm install <name> oci://registry.nebux.dev/charts/generic --version <x.y.z>
+helm install \
+  <name> \
+  oci://registry.nebux.dev/charts/generic \
+  --version <x.y.z> \
+  -f values.yml
 ```
 
 ### In CI/CD pipeline
