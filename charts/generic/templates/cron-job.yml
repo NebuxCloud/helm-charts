@@ -123,6 +123,10 @@ spec:
           {{- end }}
           {{- end }}
 
+          {{- if hasKey $cronJob "tolerations" }}
+          tolerations: {{ toYaml $cronJob.tolerations | nindent 12 }}
+          {{- end }}
+
           {{- range $containerType := tuple "initContainers" "containers" }}
           {{- if hasKey $cronJob $containerType }}
           {{ $containerType }}:

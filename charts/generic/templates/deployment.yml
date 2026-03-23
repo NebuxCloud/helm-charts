@@ -142,6 +142,10 @@ spec:
       {{- end }}
       {{- end }}
 
+      {{- if hasKey $workload "tolerations" }}
+      tolerations: {{ toYaml $workload.tolerations | nindent 8 }}
+      {{- end }}
+
       {{- range $containerType := tuple "initContainers" "containers" }}
       {{- if hasKey $workload $containerType }}
       {{ $containerType }}:

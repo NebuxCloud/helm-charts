@@ -19,6 +19,8 @@ workloads: {}
   #  securityContext: {}
   #  serviceAccountName: ""
   #
+  #  tolerations: []
+  #
   #  initContainers: {}
   #  containers:
   #    default:
@@ -117,6 +119,8 @@ cronJobs: {}
 #    volumes: []
 #    securityContext: {}
 #    serviceAccountName: ""
+#
+#    tolerations: []
 #
 #    initContainers: {}
 #    containers:
