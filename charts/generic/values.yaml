@@ -12,14 +12,15 @@ workloads: {}
   #      targetSlot: ""
   #      pastReplicas: 1
   #
+  #  tolerations: []
+  #  nodeSelector: {}
+  #
   #  restartPolicy: Always
   #  imagePullSecrets:
   #    - name: registry
   #  volumes: []
   #  securityContext: {}
   #  serviceAccountName: ""
-  #
-  #  tolerations: []
   #
   #  initContainers: {}
   #  containers:
@@ -112,15 +113,16 @@ cronJobs: {}
 #    successPolicy: null
 #    activeDeadlineSeconds: null
 #    ttlSecondsAfterFinished: null
-#  
+#
+#    tolerations: []
+#    nodeSelector: {}
+#
 #    restartPolicy: Always
 #    imagePullSecrets:
 #      - name: registry
 #    volumes: []
 #    securityContext: {}
 #    serviceAccountName: ""
-#
-#    tolerations: []
 #
 #    initContainers: {}
 #    containers:

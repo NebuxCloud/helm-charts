@@ -85,6 +85,14 @@ spec:
             secrets-hash: "{{ $.Values.secrets | toYaml | sha256sum | trunc 8 }}"
 
         spec:
+          {{- if hasKey $cronJob "tolerations" }}
+          tolerations: {{ toYaml $cronJob.tolerations | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $cronJob "nodeSelector" }}
+          nodeSelector: {{ toYaml $cronJob.nodeSelector | nindent 12 }}
+          {{- end }}
+
           {{- if hasKey $cronJob "restartPolicy" }}
           restartPolicy: {{ toYaml $cronJob.restartPolicy | nindent 12 }}
           {{- end }}
@@ -121,10 +129,6 @@ spec:
           {{- else }}
           serviceAccountName: "{{ $cronJob.serviceAccountName }}"
           {{- end }}
-          {{- end }}
-
-          {{- if hasKey $cronJob "tolerations" }}
-          tolerations: {{ toYaml $cronJob.tolerations | nindent 12 }}
           {{- end }}
 
           {{- range $containerType := tuple "initContainers" "containers" }}

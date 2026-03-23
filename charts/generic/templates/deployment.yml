@@ -65,19 +65,13 @@ spec:
         secrets-hash: "{{ $.Values.secrets | toYaml | sha256sum | trunc 8 }}"
 
     spec:
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: topology.kubernetes.io/zone
-          whenUnsatisfiable: ScheduleAnyway
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/instance: "{{ $.Release.Name }}"
-              {{- if $hasComponents }}
-              app.kubernetes.io/component: "{{ $workloadKey }}"
-              {{- end }}
-              {{- if $isBlueGreen }}
-              app.kubernetes.io/slot: "{{ $slot }}"
-              {{- end }}
+      {{- if hasKey $workload "tolerations" }}
+      tolerations: {{ toYaml $workload.tolerations | nindent 8 }}
+      {{- end }}
+
+      {{- if hasKey $workload "nodeSelector" }}
+      nodeSelector: {{ toYaml $workload.nodeSelector | nindent 8 }}
+      {{- end }}
 
       affinity:
         podAntiAffinity:
@@ -103,6 +97,20 @@ spec:
                       values:
                         - "{{ $slot }}"
                     {{- end }}
+
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: "{{ $.Release.Name }}"
+              {{- if $hasComponents }}
+              app.kubernetes.io/component: "{{ $workloadKey }}"
+              {{- end }}
+              {{- if $isBlueGreen }}
+              app.kubernetes.io/slot: "{{ $slot }}"
+              {{- end }}
 
       {{- if hasKey $workload "restartPolicy" }}
       restartPolicy: {{ toYaml $workload.restartPolicy | nindent 8 }}
@@ -140,10 +148,6 @@ spec:
       {{- else }}
       serviceAccountName: "{{ $workload.serviceAccountName }}"
       {{- end }}
-      {{- end }}
-
-      {{- if hasKey $workload "tolerations" }}
-      tolerations: {{ toYaml $workload.tolerations | nindent 8 }}
       {{- end }}
 
       {{- range $containerType := tuple "initContainers" "containers" }}
