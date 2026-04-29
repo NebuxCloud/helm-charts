@@ -1,0 +1,14 @@
+{{- range $pvcKey, $pvc := .Values.persistentVolumeClaims }}
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+
+metadata:
+  name: "{{ $.Release.Name }}{{ if gt (len $.Values.persistentVolumeClaims) 1 }}-{{ $pvcKey }}{{ end }}"
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}"
+
+
+spec: {{ toYaml $pvc | nindent 2 }}
+{{- end }}

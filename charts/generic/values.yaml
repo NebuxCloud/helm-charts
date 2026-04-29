@@ -1,8 +1,11 @@
 workloads: {}
   #default:
+  #  type: Deployment # Deployment (default) or StatefulSet
   #  replicas: 1
   #  revisionHistoryLimit: 10
+  #  minReadySeconds: 0
   #
+  #  # Deployment only:
   #  strategy:
   #    rollingUpdate:
   #      maxUnavailable: 1
@@ -11,6 +14,27 @@ workloads: {}
   #      currentSlot: ""
   #      targetSlot: ""
   #      pastReplicas: 1
+  #
+  #  # StatefulSet only:
+  #  strategy:
+  #    type: RollingUpdate
+  #    rollingUpdate:
+  #      maxUnavailable: 1
+  #      partition: 0
+  #  ordinals: nil
+  #  serviceName: "@"
+  #  podManagementPolicy: OrderedReady
+  #  persistentVolumeClaimRetentionPolicy:
+  #    whenDeleted: Retain
+  #    whenScaled: Retain
+  #  volumeClaimTemplates:
+  #    - metadata:
+  #        name: data
+  #      spec:
+  #        accessModes: [ReadWriteOncePod]
+  #        resources:
+  #          requests:
+  #            storage: 8Gi
   #
   #  tolerations: []
   #  nodeSelector: {}
@@ -85,6 +109,7 @@ workloads: {}
   #    annotations:
   #      service.kubernetes.io/topology-mode: Auto
   #    type: ClusterIP
+  #    clusterIP: ""
   #    externalTrafficPolicy: Cluster
   #    ports:
   #      - name: http
@@ -152,6 +177,21 @@ configMaps: {}
 # Don't add secrets here in version-controlled files, as they would be exposed!
 # This object should only contain empty keys for documentation purposes.
 secrets: {}
+
+persistentVolumeClaims: {}
+#  default:
+#      storageClassName: slow
+#      accessModes:
+#        - ReadWriteOncePod
+#      volumeMode: Filesystem
+#      resources:
+#        requests:
+#          storage: 8Gi
+#      selector:
+#        matchLabels:
+#          release: "stable"
+#        matchExpressions:
+#          - {key: environment, operator: In, values: [dev]}
 
 httpRoutes: []
 #  - name: default

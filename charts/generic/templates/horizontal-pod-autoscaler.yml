@@ -1,7 +1,7 @@
 {{- range $workloadKey, $workload := .Values.workloads }}
 {{- if $workload.autoscaling }}
 {{- $hasComponents := gt (len $.Values.workloads) 1 }}
-{{- $isBlueGreen := hasKey $workload.strategy "blueGreenUpdate" }}
+{{- $isBlueGreen := hasKey (default dict $workload.strategy) "blueGreenUpdate" }}
 ---
 kind: HorizontalPodAutoscaler
 apiVersion: autoscaling/v1

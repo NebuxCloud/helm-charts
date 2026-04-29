@@ -1,9 +1,11 @@
 {{- range $workloadKey, $workload := .Values.workloads }}
+{{- $workloadType := default "Deployment" $workload.type }}
+{{- $isStatefulSet := eq $workloadType "StatefulSet" }}
 {{- $hasComponents := gt (len $.Values.workloads) 1 }}
-{{- $isBlueGreen := hasKey $workload.strategy "blueGreenUpdate" }}
+{{- $isBlueGreen := and (hasKey (default dict $workload.strategy) "blueGreenUpdate") (not $isStatefulSet) }}
 {{- range $slot := ($isBlueGreen | ternary (tuple "blue" "green") (tuple "")) }}
 ---
-kind: Deployment
+kind: "{{ $workloadType }}"
 apiVersion: apps/v1
 
 metadata:
@@ -36,8 +38,47 @@ spec:
 
   revisionHistoryLimit: {{ $workload.revisionHistoryLimit }}
 
-  {{- if not $isBlueGreen }}
-  strategy: {{ toYaml $workload.strategy | nindent 4 }}
+  {{- if and (not $isBlueGreen) (hasKey $workload "strategy") }}
+  {{ $isStatefulSet | ternary "updateStrategy" "strategy" }}: {{ toYaml $workload.strategy | nindent 4 }}
+  {{- end }}
+
+  {{- if hasKey $workload "minReadySeconds" }}
+  minReadySeconds: {{ $workload.minReadySeconds }}
+  {{- end }}
+
+  {{- if $isStatefulSet }}
+  {{- if hasKey $workload "ordinals" }}
+  ordinals: {{ toYaml $workload.ordinals | nindent 4 }}
+  {{- end }}
+
+  {{- if hasKey $workload "serviceName" }}
+  {{- if hasPrefix "@" $workload.serviceName }}
+  serviceName: "{{ $.Release.Name }}{{ if ne $workload.serviceName "@" }}-{{ trimPrefix "@" $workload.serviceName }}{{ end }}"
+  {{- else }}
+  serviceName: "{{ $workload.serviceName }}"
+  {{- end }}
+  {{- end }}
+
+  {{- if hasKey $workload "podManagementPolicy" }}
+  podManagementPolicy: "{{ $workload.podManagementPolicy }}"
+  {{- end }}
+
+  {{- if hasKey $workload "persistentVolumeClaimRetentionPolicy" }}
+  persistentVolumeClaimRetentionPolicy: {{ toYaml $workload.persistentVolumeClaimRetentionPolicy | nindent 4 }}
+  {{- end }}
+
+  {{- if hasKey $workload "volumeClaimTemplates" }}
+  volumeClaimTemplates:
+    {{- range $volume := $workload.volumeClaimTemplates }}
+    - metadata:
+        {{- if hasPrefix "@" $volume.metadata.name }}
+        name: "{{ $.Release.Name }}{{ if ne $volume.metadata.name "@" }}-{{ trimPrefix "@" $volume.metadata.name }}{{ end }}"
+        {{- else }}
+        name: "{{ $volume.metadata.name }}"
+        {{- end }}
+      spec: {{ toYaml $volume.spec | nindent 8 }}
+    {{- end }}
+  {{- end }}
   {{- end }}
 
   selector:

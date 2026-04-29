@@ -1,7 +1,7 @@
 {{- range $workloadKey, $workload := .Values.workloads }}
 {{- if $workload.service }}
 {{- $hasComponents := gt (len $.Values.workloads) 1 }}
-{{- $isBlueGreen := hasKey $workload.strategy "blueGreenUpdate" }}
+{{- $isBlueGreen := hasKey (default dict $workload.strategy) "blueGreenUpdate" }}
 ---
 kind: Service
 apiVersion: v1
@@ -30,6 +30,10 @@ spec:
 
   {{- if hasKey $workload.service "type" }}
   type: "{{ $workload.service.type }}"
+  {{- end }}
+
+  {{- if hasKey $workload.service "clusterIP" }}
+  clusterIP: "{{ $workload.service.clusterIP }}"
   {{- end }}
 
   {{- if hasKey $workload.service "loadBalancerClass" }}
