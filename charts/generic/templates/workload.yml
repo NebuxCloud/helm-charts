@@ -23,9 +23,11 @@ metadata:
 spec:
   {{- if $isBlueGreen }}
   {{- $strategy := $workload.strategy.blueGreenUpdate }}
-  {{- $isOngoing := ne $strategy.currentSlot $strategy.targetSlot }}
+  {{- $isTarget := eq $strategy.targetSlot $slot }}
   {{- $isCurrent := eq $strategy.currentSlot $slot }}
-  {{- if $isCurrent }}
+  {{- $isOngoing := ne $strategy.currentSlot $strategy.targetSlot }}
+  {{- if and $workload.autoscaling $isTarget }}
+  {{- else if $isCurrent }}
   replicas: {{ $strategy.currentReplicas }}
   {{- else if $isOngoing }}
   replicas: {{ $strategy.pastReplicas }}
