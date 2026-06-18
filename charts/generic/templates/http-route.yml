@@ -58,6 +58,10 @@ spec:
           namespace: {{ toYaml $backendRef.namespace | nindent 12 }}
           {{- end }}
 
+          {{- if hasKey $backendRef "weight" }}
+          weight: {{ toYaml $backendRef.weight | nindent 12 }}
+          {{- end }}
+
           {{- if hasKey $backendRef "filters" }}
           filters: {{ toYaml $backendRef.filters | nindent 12 }}
           {{- end }}
