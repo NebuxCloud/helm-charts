@@ -98,7 +98,10 @@ spec:
           {{- end }}
 
           {{- if hasKey $cronJob "imagePullSecrets" }}
-          imagePullSecrets: {{ toYaml $cronJob.imagePullSecrets | nindent 12 }}
+          imagePullSecrets:
+            {{- range $pullSecret := $cronJob.imagePullSecrets }}
+            - name: "{{ include "nebux-generic.resourceName" (dict "name" $pullSecret.name "release" $.Release.Name) }}"
+            {{- end }}
           {{- end }}
 
           {{- if hasKey $cronJob "volumes" }}

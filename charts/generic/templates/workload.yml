@@ -152,7 +152,10 @@ spec:
       {{- end }}
 
       {{- if hasKey $workload "imagePullSecrets" }}
-      imagePullSecrets: {{ toYaml $workload.imagePullSecrets | nindent 8 }}
+      imagePullSecrets:
+        {{- range $pullSecret := $workload.imagePullSecrets }}
+        - name: "{{ include "nebux-generic.resourceName" (dict "name" $pullSecret.name "release" $.Release.Name) }}"
+        {{- end }}
       {{- end }}
 
       {{- if hasKey $workload "volumes" }}
