@@ -230,7 +230,18 @@ spec:
           {{- end }}
 
           {{- if hasKey $container "env" }}
-          env: {{ toYaml $container.env | nindent 12 }}
+          {{- $envs := list }}
+          {{- range $env := $container.env }}
+          {{- if hasKey (default dict $env.valueFrom) "secretKeyRef" }}
+          {{- $name := include "nebux-generic.configRef" (dict "name" $env.valueFrom.secretKeyRef.name "release" $.Release.Name "count" (len $.Values.secrets)) }}
+          {{- $env = mergeOverwrite (deepCopy $env) (dict "valueFrom" (dict "secretKeyRef" (dict "name" $name))) }}
+          {{- else if hasKey (default dict $env.valueFrom) "configMapKeyRef" }}
+          {{- $name := include "nebux-generic.configRef" (dict "name" $env.valueFrom.configMapKeyRef.name "release" $.Release.Name "count" (len $.Values.configMaps)) }}
+          {{- $env = mergeOverwrite (deepCopy $env) (dict "valueFrom" (dict "configMapKeyRef" (dict "name" $name))) }}
+          {{- end }}
+          {{- $envs = append $envs $env }}
+          {{- end }}
+          env: {{ toYaml $envs | nindent 12 }}
           {{- end }}
 
           {{- if hasKey $container "volumeMounts" }}
