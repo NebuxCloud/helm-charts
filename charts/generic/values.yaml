@@ -229,6 +229,25 @@ httpRoutes: []
 #          - path:
 #              value: /private
 
+tcpRoutes: []
+#  - name: default
+#    parentRefs:
+#      - name: default
+#        sectionName: postgres
+#    rules:
+#      # default service (if there's only one)
+#      - backendRefs:
+#          - port: 5432
+#      # relative service ("<releaseName>-component")
+#      - backendRefs:
+#          - name: "@component"
+#            port: 5432
+#      # another service, with traffic weighting
+#      - backendRefs:
+#          - name: another-service
+#            port: 5432
+#            weight: 100
+
 ingresses: []
 #  - name: default
 #    annotations: {}

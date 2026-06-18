@@ -1,0 +1,55 @@
+{{- range $tcpRoute := .Values.tcpRoutes }}
+{{- $hasTcpRoutes := gt (len $.Values.tcpRoutes) 1 }}
+---
+kind: TCPRoute
+apiVersion: gateway.networking.k8s.io/v1alpha2
+
+metadata:
+  name: "{{ $.Release.Name }}{{ if $hasTcpRoutes }}-{{ $tcpRoute.name }}{{ end }}"
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}"
+
+spec:
+  {{- if hasKey $tcpRoute "parentRefs" }}
+  parentRefs: {{ toYaml $tcpRoute.parentRefs | nindent 4 }}
+  {{- end }}
+
+  rules:
+    {{- range $rule := $tcpRoute.rules }}
+    - {{- if hasKey $rule "name" }}
+      name: {{ toYaml $rule.name | nindent 8 }}
+      {{- end }}
+
+      {{- if hasKey $rule "backendRefs" }}
+      backendRefs:
+        {{- range $backendRef := $rule.backendRefs }}
+        - {{- if hasKey $backendRef "name" }}
+          name: "{{ include "nebux-generic.resourceName" (dict "name" $backendRef.name "release" $.Release.Name) }}"
+          {{- else }}
+          name: "{{ $.Release.Name }}"
+          {{- end }}
+
+          {{- if hasKey $backendRef "port" }}
+          port: {{ $backendRef.port }}
+          {{- end }}
+
+          {{- if hasKey $backendRef "group" }}
+          group: {{ toYaml $backendRef.group | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $backendRef "kind" }}
+          kind: {{ toYaml $backendRef.kind | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $backendRef "namespace" }}
+          namespace: {{ toYaml $backendRef.namespace | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $backendRef "weight" }}
+          weight: {{ toYaml $backendRef.weight | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+{{- end }}
