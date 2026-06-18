@@ -6,11 +6,7 @@ kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 
 metadata:
-  {{- if hasPrefix "@" $name }}
-  name: "{{ $.Release.Name }}{{ if ne $name "@" }}-{{ trimPrefix "@" $name }}{{ end }}"
-  {{- else }}
-  name: "{{ $name }}"
-  {{- end }}
+  name: "{{ include "nebux-generic.resourceName" (dict "name" $name "release" $.Release.Name) }}"
 
   labels:
     app.kubernetes.io/instance: "{{ $.Release.Name }}"
@@ -18,12 +14,7 @@ metadata:
 roleRef:
   kind: "{{ $binding.ref.kind }}"
   apiGroup: rbac.authorization.k8s.io
-
-  {{- if hasPrefix "@" $binding.ref.name }}
-  name: "{{ $.Release.Name }}{{ if ne $binding.ref.name "@" }}-{{ trimPrefix "@" $binding.ref.name }}{{ end }}"
-  {{- else }}
-  name: "{{ $binding.ref.name }}"
-  {{- end }}
+  name: "{{ include "nebux-generic.resourceName" (dict "name" $binding.ref.name "release" $.Release.Name) }}"
 
 subjects:
   {{- range $subject := $binding.subjects }}
@@ -31,19 +22,10 @@ subjects:
     {{- if ne $subject.kind "ServiceAccount" }}
     apiGroup: rbac.authorization.k8s.io
     {{- end }}
-
-    {{- if hasPrefix "@" $subject.name }}
-    name: "{{ $.Release.Name }}{{ if ne $subject.name "@" }}-{{ trimPrefix "@" $subject.name }}{{ end }}"
-    {{- else }}
-    name: "{{ $subject.name }}"
-    {{- end }}
+    name: "{{ include "nebux-generic.resourceName" (dict "name" $subject.name "release" $.Release.Name) }}"
 
     {{- if hasKey $subject "namespace" }}
-    {{- if eq $subject.namespace "@" }}
-    namespace: "{{ $.Release.Namespace }}"
-    {{- else }}
-    namespace: "{{ $subject.namespace }}"
-    {{- end }}
+    namespace: "{{ include "nebux-generic.namespace" (dict "namespace" $subject.namespace "release" $.Release.Namespace) }}"
     {{- end }}
   {{- end }}
 {{- end }}

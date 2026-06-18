@@ -41,11 +41,7 @@ spec:
         - port: {{ dig "port" "80" $backendRef }}
 
           {{- if hasKey $backendRef "name" }}
-          {{- if hasPrefix "@" $backendRef.name }}
-          name: "{{ $.Release.Name }}-{{ trimPrefix "@" $backendRef.name }}"
-          {{- else }}
-          name: "{{ $backendRef.name }}"
-          {{- end }}
+          name: "{{ include "nebux-generic.resourceName" (dict "name" $backendRef.name "release" $.Release.Name) }}"
           {{- else }}
           name: "{{ $.Release.Name }}"
           {{- end }}

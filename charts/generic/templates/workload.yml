@@ -54,11 +54,7 @@ spec:
   {{- end }}
 
   {{- if hasKey $workload "serviceName" }}
-  {{- if hasPrefix "@" $workload.serviceName }}
-  serviceName: "{{ $.Release.Name }}{{ if ne $workload.serviceName "@" }}-{{ trimPrefix "@" $workload.serviceName }}{{ end }}"
-  {{- else }}
-  serviceName: "{{ $workload.serviceName }}"
-  {{- end }}
+  serviceName: "{{ include "nebux-generic.resourceName" (dict "name" $workload.serviceName "release" $.Release.Name) }}"
   {{- end }}
 
   {{- if hasKey $workload "podManagementPolicy" }}
@@ -73,11 +69,7 @@ spec:
   volumeClaimTemplates:
     {{- range $volume := $workload.volumeClaimTemplates }}
     - metadata:
-        {{- if hasPrefix "@" $volume.metadata.name }}
-        name: "{{ $.Release.Name }}{{ if ne $volume.metadata.name "@" }}-{{ trimPrefix "@" $volume.metadata.name }}{{ end }}"
-        {{- else }}
-        name: "{{ $volume.metadata.name }}"
-        {{- end }}
+        name: "{{ include "nebux-generic.resourceName" (dict "name" $volume.metadata.name "release" $.Release.Name) }}"
       spec: {{ toYaml $volume.spec | nindent 8 }}
     {{- end }}
   {{- end }}
@@ -186,11 +178,7 @@ spec:
       {{- end }}
 
       {{- if hasKey $workload "serviceAccountName" }}
-      {{- if hasPrefix "@" $workload.serviceAccountName }}
-      serviceAccountName: "{{ $.Release.Name }}{{ if ne $workload.serviceAccountName "@" }}-{{ trimPrefix "@" $workload.serviceAccountName }}{{ end }}"
-      {{- else }}
-      serviceAccountName: "{{ $workload.serviceAccountName }}"
-      {{- end }}
+      serviceAccountName: "{{ include "nebux-generic.resourceName" (dict "name" $workload.serviceAccountName "release" $.Release.Name) }}"
       {{- end }}
 
       {{- range $containerType := tuple "initContainers" "containers" }}

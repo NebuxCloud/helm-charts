@@ -92,6 +92,18 @@ helm upgrade \
 
 ## Configuration examples
 
+### Referencing resources
+
+Every reference to another resource — service names,
+service accounts, RBAC roles/bindings, HTTP route backends, an ingress'
+`tlsSecretName`, etc. — follows the same `@` convention:
+
+- `@name` is **release-managed**: the release name is prepended (`@name` →
+  `<release>-name`, and a bare `@` → `<release>`).
+- Any other value is used **verbatim**, so you can reference resources outside
+  this release (created by another release, an operator such as
+  [External Secrets](https://external-secrets.io/), etc.).
+
 ### Rolling release
 
 ```yaml
@@ -113,9 +125,9 @@ workloads:
           - --port=3000
         envFrom:
           configMaps:
-            - default
+            - "@default"
           secrets:
-            - default
+            - "@default"
         resources:
           requests:
             cpu: 50m
@@ -182,7 +194,7 @@ secrets:
     #SUPER_SECRET: proto://my-fancy-software:<password>@service:1234
 ```
 
-### Blue-green
+### Blue-green release
 
 ```yaml
 workloads:

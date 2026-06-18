@@ -38,5 +38,5 @@ spec:
     {{- end }}
 
   tls:
-    - secretName: "{{ $ingress.tlsSecretName }}"
+    - secretName: "{{ include "nebux-generic.resourceName" (dict "name" $ingress.tlsSecretName "release" $.Release.Name) }}"
 {{- end }}

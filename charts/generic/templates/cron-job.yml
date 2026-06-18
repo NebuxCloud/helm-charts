@@ -124,11 +124,7 @@ spec:
           {{- end }}
 
           {{- if hasKey $cronJob "serviceAccountName" }}
-          {{- if hasPrefix "@" $cronJob.serviceAccountName }}
-          serviceAccountName: "{{ $.Release.Name }}{{ if ne $cronJob.serviceAccountName "@" }}-{{ trimPrefix "@" $cronJob.serviceAccountName }}{{ end }}"
-          {{- else }}
-          serviceAccountName: "{{ $cronJob.serviceAccountName }}"
-          {{- end }}
+          serviceAccountName: "{{ include "nebux-generic.resourceName" (dict "name" $cronJob.serviceAccountName "release" $.Release.Name) }}"
           {{- end }}
 
           {{- range $containerType := tuple "initContainers" "containers" }}
