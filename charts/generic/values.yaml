@@ -240,8 +240,7 @@ ingresses: []
 #        path: /
 #    tlsSecretName: certificate-example-org
 #    service:
-#      name:
-#      absoluteName:
+#      name: "@" # "@"/"@<component>" release-managed, "<name>" external; defaults to "@"
 #      port:
 
 serviceAccounts: {}

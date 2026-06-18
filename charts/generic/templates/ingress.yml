@@ -27,12 +27,7 @@ spec:
             path: "{{ $host.path }}"
             backend:
               service:
-                {{- if and (hasKey $ingress "service") (hasKey $ingress.service "absoluteName") }}
-                name: "{{ $ingress.service.absoluteName }}"
-                {{- else }}
-                {{- $hasRelativeName := and (hasKey $ingress "service") (hasKey $ingress.service "name") }}
-                name: "{{ $.Release.Name }}{{ if $hasRelativeName }}-{{ $ingress.service.name }}{{ end }}"
-                {{- end }}
+                name: "{{ include "nebux-generic.resourceName" (dict "name" (dig "service" "name" "@" $ingress) "release" $.Release.Name) }}"
                 port:
                   name: "{{ dig "service" "port" "http" $ingress }}"
     {{- end }}

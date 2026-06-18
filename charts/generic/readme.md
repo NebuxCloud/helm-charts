@@ -94,8 +94,9 @@ helm upgrade \
 
 ### Referencing resources
 
-Every reference to another resource — config maps, secrets, service names,
-service accounts, RBAC roles/bindings, HTTP route backends, an ingress'
+Every reference to another resource — config maps and secrets (via `volumes`,
+`envFrom` or `env` `valueFrom`), service names, service accounts, image pull
+secrets, RBAC roles/bindings, HTTP route backends, an ingress' service and its
 `tlsSecretName`, etc. — follows the same `@` convention:
 
 - `@name` is **release-managed**: the release name is prepended (`@name` →
