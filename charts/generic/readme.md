@@ -94,7 +94,7 @@ helm upgrade \
 
 ### Referencing resources
 
-Every reference to another resource — service names,
+Every reference to another resource — config maps, secrets, service names,
 service accounts, RBAC roles/bindings, HTTP route backends, an ingress'
 `tlsSecretName`, etc. — follows the same `@` convention:
 
@@ -103,6 +103,31 @@ service accounts, RBAC roles/bindings, HTTP route backends, an ingress'
 - Any other value is used **verbatim**, so you can reference resources outside
   this release (created by another release, an operator such as
   [External Secrets](https://external-secrets.io/), etc.).
+
+Config maps and secrets are a special case: as they are auto-named after the
+release, the key is only appended when more than one is defined (`@foo` →
+`<release>` with a single secret, or `<release>-foo` with several).
+
+```yaml
+workloads:
+  default:
+    containers:
+      default:
+        image: registry.nebux.dev/my-fancy-api:v0.0.0
+        envFrom:
+          secrets:
+            - "@default"         # release-managed secret
+            - shared-credentials # external secret, used as-is
+
+    volumes:
+      - name: app-config
+        configMap:
+          name: "@default" # release-managed config map
+
+      - name: tls
+        secret:
+          secretName: certificate-example-org  # external secret, used as-is
+```
 
 ### Rolling release
 

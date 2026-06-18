@@ -32,3 +32,24 @@ Usage:
 {{ .namespace }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Resolve a reference to a release-managed config map or secret using the "@"
+convention, mirroring how those resources are named.
+
+A name prefixed with "@" is release-managed: the release name is prepended, and
+the key (the remainder) is only appended as a suffix when more than one config
+map/secret of that kind is defined (matching the naming in config-map.yml and
+secret.yml). Any other name is used verbatim, allowing references to config
+maps/secrets outside this release.
+
+Usage:
+  {{ include "nebux-generic.configRef" (dict "name" $name "release" $.Release.Name "count" (len $.Values.secrets)) }}
+*/}}
+{{- define "nebux-generic.configRef" -}}
+{{- if hasPrefix "@" .name -}}
+{{ .release }}{{ if gt (int .count) 1 }}-{{ trimPrefix "@" .name }}{{ end }}
+{{- else -}}
+{{ .name }}
+{{- end -}}
+{{- end -}}

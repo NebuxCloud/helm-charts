@@ -59,8 +59,8 @@ workloads: {}
   #      restartPolicy: Always
   #      lifecycle: {}
   #      envFrom:
-  #        configMaps: []
-  #        secrets: []
+  #        configMaps: [] # "@<key>" for release-managed, "<name>" for external
+  #        secrets: []    # "@<key>" for release-managed, "<name>" for external
   #      env: []
   #      volumeMounts: []
   #      resources:
@@ -159,8 +159,8 @@ cronJobs: {}
 #        restartPolicy: Always
 #        lifecycle: {}
 #        envFrom:
-#          configMaps: []
-#          secrets: []
+#          configMaps: [] # "@<key>" for release-managed, "<name>" for external
+#          secrets: []    # "@<key>" for release-managed, "<name>" for external
 #        env: []
 #        volumeMounts: []
 #        resources:
