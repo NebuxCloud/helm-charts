@@ -15,12 +15,12 @@ metadata:
   {{- if or $job.helmHooks $job.annotations }}
   annotations:
     {{- if $job.helmHooks }}
-    "helm.sh/hook": "{{ join "," $job.helmHooks.events }}"
+    "helm.sh/hook": "{{ include "nebux-generic.csv" $job.helmHooks.events }}"
     {{- if hasKey $job.helmHooks "weight" }}
     "helm.sh/hook-weight": "{{ $job.helmHooks.weight }}"
     {{- end }}
     {{- if hasKey $job.helmHooks "deletePolicy" }}
-    "helm.sh/hook-delete-policy": "{{ $job.helmHooks.deletePolicy }}"
+    "helm.sh/hook-delete-policy": "{{ include "nebux-generic.csv" $job.helmHooks.deletePolicy }}"
     {{- end }}
     {{- end }}
     {{- with $job.annotations }}

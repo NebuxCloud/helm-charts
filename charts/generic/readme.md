@@ -235,7 +235,7 @@ jobs:
     helmHooks:
       events: [post-install, pre-upgrade]
       weight: -5 # run before other hooks
-      deletePolicy: before-hook-creation,hook-succeeded
+      deletePolicy: [before-hook-creation, hook-succeeded]
     backoffLimit: 3
     activeDeadlineSeconds: 900
     ttlSecondsAfterFinished: 300

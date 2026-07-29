@@ -53,3 +53,18 @@ Usage:
 {{ .name }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Render a value that Kubernetes expects as a comma-separated string (e.g. annotations).
+Accepts either a list (joined with ",") or a plain string (used verbatim), so both forms are valid.
+
+Usage:
+  {{ include "nebux-generic.csv" $job.helmHooks.events }}
+*/}}
+{{- define "nebux-generic.csv" -}}
+{{- if kindIs "string" . -}}
+{{ . }}
+{{- else -}}
+{{ join "," . }}
+{{- end -}}
+{{- end -}}
