@@ -13,7 +13,8 @@ This Helm chart allows orchestrating generic workloads with Kubernetes, reducing
 
 ## Features
 
-- 🫧 **Workloads.** Define multiple workloads using [deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/), [stateful sets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) and [cron jobs](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/); supporting all kinds of containers ([init](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/), [sidecar](https://kubernetes.io/docs/concepts/workloads/pods/sidecar-containers/) and main), startup/readiness/liveness probes, resource requests/limits, and volumes, among others.
+- 🫧 **Workloads.** Define multiple workloads using [deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/), [stateful sets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/), [jobs](https://kubernetes.io/docs/concepts/workloads/controllers/job/) and [cron jobs](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/); supporting all kinds of containers ([init](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/), [sidecar](https://kubernetes.io/docs/concepts/workloads/pods/sidecar-containers/) and main), startup/readiness/liveness probes, resource requests/limits, and volumes, among others.
+- 🪝 **Lifecycle hooks.** Run one-shot [jobs](https://kubernetes.io/docs/concepts/workloads/controllers/job/) as [Helm hooks](https://helm.sh/docs/topics/charts_hooks/) (e.g. a database migration that must complete before the workloads roll out).
 - ♟️ **Deployment strategies.** Deploy changes with a blue-green strategy (non-native in Kubernetes) as well as the native ones (rolling and recreate).
 - 📜 **Configuration.** Inject [config maps](https://kubernetes.io/docs/concepts/configuration/configmap/) and [secrets](https://kubernetes.io/docs/concepts/configuration/secret/) as environment variables, or mount them with [volumes](https://kubernetes.io/docs/concepts/storage/volumes/).
 - 💾 **Persistence.** Store persistent data from workloads with [persistent volume claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
@@ -218,6 +219,44 @@ configMaps:
 secrets:
   default: {}
     #SUPER_SECRET: proto://my-fancy-software:<password>@service:1234
+```
+
+### Database migration (pre-rollout Job hook)
+
+Run a migration once per install/upgrade, ordered **before** the workloads roll
+out, by declaring a Job with `helmHooks`. `post-install,pre-upgrade` guarantees
+the release-managed secret it reads already exists (created on install, and the
+previous revision's copy on upgrade). If the migration fails, the upgrade is
+aborted before any new pod starts.
+
+```yaml
+jobs:
+  migrate:
+    helmHooks:
+      events: [post-install, pre-upgrade]
+      weight: -5 # run before other hooks
+      deletePolicy: before-hook-creation,hook-succeeded
+    backoffLimit: 3
+    activeDeadlineSeconds: 900
+    ttlSecondsAfterFinished: 300
+    containers:
+      default:
+        image: registry.nebux.dev/my-fancy-api:v0.0.0
+        command:
+          - ./bin
+          - database:migrate
+        envFrom:
+          configMaps:
+            - "@default"
+          secrets:
+            - "@default"
+
+workloads:
+  default:
+    containers:
+      default:
+        image: registry.nebux.dev/my-fancy-api:v0.0.0
+        # ...
 ```
 
 ### Blue-green release

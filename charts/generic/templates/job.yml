@@ -1,0 +1,189 @@
+{{- range $jobKey, $job := .Values.jobs }}
+{{- $hasComponents := gt (len $.Values.jobs) 1 }}
+---
+kind: Job
+apiVersion: batch/v1
+
+metadata:
+  name: "{{ $.Release.Name }}{{ if $hasComponents }}-{{ $jobKey }}{{ end }}"
+  namespace: "{{ $.Release.Namespace }}"
+  labels:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}"
+    {{- if $hasComponents }}
+    app.kubernetes.io/component: "{{ $jobKey }}"
+    {{- end }}
+  {{- if or $job.helmHooks $job.annotations }}
+  annotations:
+    {{- if $job.helmHooks }}
+    "helm.sh/hook": "{{ join "," $job.helmHooks.events }}"
+    {{- if hasKey $job.helmHooks "weight" }}
+    "helm.sh/hook-weight": "{{ $job.helmHooks.weight }}"
+    {{- end }}
+    {{- if hasKey $job.helmHooks "deletePolicy" }}
+    "helm.sh/hook-delete-policy": "{{ $job.helmHooks.deletePolicy }}"
+    {{- end }}
+    {{- end }}
+    {{- with $job.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+
+spec:
+  {{- if hasKey $job "completionMode" }}
+  completionMode: {{ toYaml $job.completionMode | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $job "completions" }}
+  completions: {{ toYaml $job.completions | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $job "parallelism" }}
+  parallelism: {{ toYaml $job.parallelism | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $job "backoffLimit" }}
+  backoffLimit: {{ toYaml $job.backoffLimit | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $job "backoffLimitPerIndex" }}
+  backoffLimitPerIndex: {{ toYaml $job.backoffLimitPerIndex | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $job "maxFailedIndexes" }}
+  maxFailedIndexes: {{ toYaml $job.maxFailedIndexes | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $job "podFailurePolicy" }}
+  podFailurePolicy: {{ toYaml $job.podFailurePolicy | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $job "podReplacementPolicy" }}
+  podReplacementPolicy: {{ toYaml $job.podReplacementPolicy | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $job "successPolicy" }}
+  successPolicy: {{ toYaml $job.successPolicy | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $job "activeDeadlineSeconds" }}
+  activeDeadlineSeconds: {{ toYaml $job.activeDeadlineSeconds | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $job "ttlSecondsAfterFinished" }}
+  ttlSecondsAfterFinished: {{ toYaml $job.ttlSecondsAfterFinished | nindent 4 }}
+  {{- end }}
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: "{{ $.Release.Name }}"
+        {{- if $hasComponents }}
+        app.kubernetes.io/component: "{{ $jobKey }}"
+        {{- end }}
+      annotations:
+        configmaps-hash: "{{ $.Values.configMaps | toYaml | sha256sum | trunc 8 }}"
+        secrets-hash: "{{ $.Values.secrets | toYaml | sha256sum | trunc 8 }}"
+
+    spec:
+      {{- if hasKey $job "tolerations" }}
+      tolerations: {{ toYaml $job.tolerations | nindent 8 }}
+      {{- end }}
+
+      {{- if hasKey $job "nodeSelector" }}
+      nodeSelector: {{ toYaml $job.nodeSelector | nindent 8 }}
+      {{- end }}
+
+      restartPolicy: {{ default "Never" $job.restartPolicy }}
+
+      {{- if hasKey $job "imagePullSecrets" }}
+      imagePullSecrets:
+        {{- range $pullSecret := $job.imagePullSecrets }}
+        - name: "{{ include "nebux-generic.resourceName" (dict "name" $pullSecret.name "release" $.Release.Name) }}"
+        {{- end }}
+      {{- end }}
+
+      {{- if hasKey $job "volumes" }}
+      volumes:
+        {{- range $volume := $job.volumes }}
+        - name: "{{ $volume.name }}"
+          {{- if hasKey $volume "configMap" }}
+          configMap:
+            name: "{{ include "nebux-generic.configRef" (dict "name" $volume.configMap.name "release" $.Release.Name "count" (len $.Values.configMaps)) }}"
+          {{- end }}
+          {{- if hasKey $volume "secret" }}
+          secret:
+            secretName: "{{ include "nebux-generic.configRef" (dict "name" $volume.secret.secretName "release" $.Release.Name "count" (len $.Values.secrets)) }}"
+          {{- end }}
+          {{- if hasKey $volume "hostPath" }}
+          hostPath: {{ toYaml $volume.hostPath | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+
+      {{- if hasKey $job "securityContext" }}
+      securityContext: {{ toYaml $job.securityContext | nindent 8 }}
+      {{- end }}
+
+      {{- if hasKey $job "serviceAccountName" }}
+      serviceAccountName: "{{ include "nebux-generic.resourceName" (dict "name" $job.serviceAccountName "release" $.Release.Name) }}"
+      {{- end }}
+
+      {{- range $containerType := tuple "initContainers" "containers" }}
+      {{- if hasKey $job $containerType }}
+      {{ $containerType }}:
+        {{- range $containerName, $container := index $job $containerType }}
+        - name: "{{ $containerName }}"
+          image: "{{ $container.image }}"
+
+          {{- if hasKey $container "imagePullPolicy" }}
+          imagePullPolicy: {{ toYaml $container.imagePullPolicy | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $container "command" }}
+          command: {{ toYaml $container.command | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $container "args" }}
+          args: {{ toYaml $container.args | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $container "restartPolicy" }}
+          restartPolicy: {{ toYaml $container.restartPolicy | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $container "lifecycle" }}
+          lifecycle: {{ toYaml $container.lifecycle | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $container "envFrom" }}
+          envFrom:
+            {{- range $configMap := $container.envFrom.configMaps }}
+            - configMapRef:
+                name: "{{ include "nebux-generic.configRef" (dict "name" $configMap "release" $.Release.Name "count" (len $.Values.configMaps)) }}"
+            {{- end }}
+            {{- range $secret := $container.envFrom.secrets }}
+            - secretRef:
+                name: "{{ include "nebux-generic.configRef" (dict "name" $secret "release" $.Release.Name "count" (len $.Values.secrets)) }}"
+            {{- end }}
+          {{- end }}
+
+          {{- if hasKey $container "env" }}
+          {{- $envs := list }}
+          {{- range $env := $container.env }}
+          {{- if hasKey (default dict $env.valueFrom) "secretKeyRef" }}
+          {{- $name := include "nebux-generic.configRef" (dict "name" $env.valueFrom.secretKeyRef.name "release" $.Release.Name "count" (len $.Values.secrets)) }}
+          {{- $env = mergeOverwrite (deepCopy $env) (dict "valueFrom" (dict "secretKeyRef" (dict "name" $name))) }}
+          {{- else if hasKey (default dict $env.valueFrom) "configMapKeyRef" }}
+          {{- $name := include "nebux-generic.configRef" (dict "name" $env.valueFrom.configMapKeyRef.name "release" $.Release.Name "count" (len $.Values.configMaps)) }}
+          {{- $env = mergeOverwrite (deepCopy $env) (dict "valueFrom" (dict "configMapKeyRef" (dict "name" $name))) }}
+          {{- end }}
+          {{- $envs = append $envs $env }}
+          {{- end }}
+          env: {{ toYaml $envs | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $container "volumeMounts" }}
+          volumeMounts: {{ toYaml $container.volumeMounts | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $container "resources" }}
+          resources: {{ toYaml $container.resources | nindent 12 }}
+          {{- end }}
+
+          {{- if hasKey $container "securityContext" }}
+          securityContext: {{ toYaml $container.securityContext | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- end }}
+{{- end }}
