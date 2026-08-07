@@ -19,7 +19,7 @@ This Helm chart allows orchestrating generic workloads with Kubernetes, reducing
 - 📜 **Configuration.** Inject [config maps](https://kubernetes.io/docs/concepts/configuration/configmap/) and [secrets](https://kubernetes.io/docs/concepts/configuration/secret/) as environment variables, or mount them with [volumes](https://kubernetes.io/docs/concepts/storage/volumes/).
 - 💾 **Persistence.** Store persistent data from workloads with [persistent volume claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
 - 🪜 **Scaling.** Scale workloads with [horizontal pod autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/).
-- 🌍 **Ingress/gateway.** Expose your workloads' services using the [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) and the [Gateway](https://gateway-api.sigs.k8s.io/) APIs.
+- 🌍 **Ingress/gateway.** Expose your workloads' services using the [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) and the [Gateway](https://gateway-api.sigs.k8s.io/) APIs, with HTTP, TCP and UDP routes.
 - 🔒 **Security.** Secure your workloads with [network policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/) and [security contexts](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) (at pod and container levels).
 - ❤️‍🩹 **Resilience.** Maximize availability with [pod disruption budgets](https://kubernetes.io/docs/tasks/run-application/configure-pdb/).
 - 🪪 **RBAC.** Full [RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) support with [service accounts](https://kubernetes.io/docs/concepts/security/service-accounts/), roles and bindings (at namespace and cluster level).
@@ -97,7 +97,7 @@ helm upgrade \
 
 Every reference to another resource — config maps and secrets (via `volumes`,
 `envFrom` or `env` `valueFrom`), service names, service accounts, image pull
-secrets, RBAC roles/bindings, HTTP route backends, an ingress' service and its
+secrets, RBAC roles/bindings, HTTP/TCP/UDP route backends, an ingress' service and its
 `tlsSecretName`, etc. — follows the same `@` convention:
 
 - `@name` is **release-managed**: the release name is prepended (`@name` →

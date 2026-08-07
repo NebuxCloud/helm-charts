@@ -290,18 +290,35 @@ tcpRoutes: []
 #    parentRefs:
 #      - name: default
 #        sectionName: postgres
+#    # The API allows exactly one rule, with up to 16 backend refs.
 #    rules:
-#      # default service (if there's only one)
 #      - backendRefs:
+#          # default service (if there's only one)
 #          - port: 5432
-#      # relative service ("<releaseName>-component")
-#      - backendRefs:
+#          # relative service ("<releaseName>-component")
 #          - name: "@component"
 #            port: 5432
-#      # another service, with traffic weighting
-#      - backendRefs:
+#          # another service, with traffic weighting
 #          - name: another-service
 #            port: 5432
+#            weight: 100
+
+udpRoutes: []
+#  - name: default
+#    parentRefs:
+#      - name: default
+#        sectionName: dns
+#    # The API allows exactly one rule, with up to 16 backend refs.
+#    rules:
+#      - backendRefs:
+#          # default service (if there's only one)
+#          - port: 53
+#          # relative service ("<releaseName>-component")
+#          - name: "@component"
+#            port: 53
+#          # another service, with traffic weighting
+#          - name: another-service
+#            port: 53
 #            weight: 100
 
 ingresses: []

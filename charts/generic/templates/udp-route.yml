@@ -1,22 +1,22 @@
-{{- range $tcpRoute := .Values.tcpRoutes }}
-{{- $hasTcpRoutes := gt (len $.Values.tcpRoutes) 1 }}
+{{- range $udpRoute := .Values.udpRoutes }}
+{{- $hasUdpRoutes := gt (len $.Values.udpRoutes) 1 }}
 ---
-kind: TCPRoute
+kind: UDPRoute
 apiVersion: gateway.networking.k8s.io/v1
 
 metadata:
-  name: "{{ $.Release.Name }}{{ if $hasTcpRoutes }}-{{ $tcpRoute.name }}{{ end }}"
+  name: "{{ $.Release.Name }}{{ if $hasUdpRoutes }}-{{ $udpRoute.name }}{{ end }}"
   namespace: "{{ $.Release.Namespace }}"
   labels:
     app.kubernetes.io/instance: "{{ $.Release.Name }}"
 
 spec:
-  {{- if hasKey $tcpRoute "parentRefs" }}
-  parentRefs: {{ toYaml $tcpRoute.parentRefs | nindent 4 }}
+  {{- if hasKey $udpRoute "parentRefs" }}
+  parentRefs: {{ toYaml $udpRoute.parentRefs | nindent 4 }}
   {{- end }}
 
   rules:
-    {{- range $rule := $tcpRoute.rules }}
+    {{- range $rule := $udpRoute.rules }}
     - {{- if hasKey $rule "name" }}
       name: {{ toYaml $rule.name | nindent 8 }}
       {{- end }}
