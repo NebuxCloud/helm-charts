@@ -85,6 +85,10 @@ spec:
 
       restartPolicy: {{ default "Never" $job.restartPolicy }}
 
+      {{- if hasKey $job "enableServiceLinks" }}
+      enableServiceLinks: {{ toYaml $job.enableServiceLinks | nindent 8 }}
+      {{- end }}
+
       {{- if hasKey $job "imagePullSecrets" }}
       imagePullSecrets:
         {{- range $pullSecret := $job.imagePullSecrets }}

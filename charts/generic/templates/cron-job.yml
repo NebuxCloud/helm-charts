@@ -97,6 +97,10 @@ spec:
           restartPolicy: {{ toYaml $cronJob.restartPolicy | nindent 12 }}
           {{- end }}
 
+          {{- if hasKey $cronJob "enableServiceLinks" }}
+          enableServiceLinks: {{ toYaml $cronJob.enableServiceLinks | nindent 12 }}
+          {{- end }}
+
           {{- if hasKey $cronJob "imagePullSecrets" }}
           imagePullSecrets:
             {{- range $pullSecret := $cronJob.imagePullSecrets }}

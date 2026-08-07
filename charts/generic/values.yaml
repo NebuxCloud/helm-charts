@@ -40,6 +40,7 @@ workloads: {}
   #  nodeSelector: {}
   #
   #  restartPolicy: Always
+  #  enableServiceLinks: true
   #  imagePullSecrets:
   #    - name: registry
   #  volumes: []
@@ -141,6 +142,7 @@ jobs: {}
 #    nodeSelector: {}
 #
 #    restartPolicy: Never
+#    enableServiceLinks: true
 #    imagePullSecrets:
 #      - name: registry
 #    volumes: []
@@ -196,6 +198,7 @@ cronJobs: {}
 #    nodeSelector: {}
 #
 #    restartPolicy: Always
+#    enableServiceLinks: true
 #    imagePullSecrets:
 #      - name: registry
 #    volumes: []

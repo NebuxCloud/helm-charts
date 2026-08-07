@@ -151,6 +151,10 @@ spec:
       restartPolicy: {{ toYaml $workload.restartPolicy | nindent 8 }}
       {{- end }}
 
+      {{- if hasKey $workload "enableServiceLinks" }}
+      enableServiceLinks: {{ toYaml $workload.enableServiceLinks | nindent 8 }}
+      {{- end }}
+
       {{- if hasKey $workload "imagePullSecrets" }}
       imagePullSecrets:
         {{- range $pullSecret := $workload.imagePullSecrets }}
