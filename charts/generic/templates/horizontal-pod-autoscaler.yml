@@ -17,7 +17,7 @@ metadata:
 
 spec:
   scaleTargetRef:
-    kind: Deployment
+    kind: "{{ default "Deployment" $workload.type }}"
     apiVersion: apps/v1
     name: "{{ $.Release.Name }}{{ if $hasComponents }}-{{ $workloadKey }}{{ end }}{{ if $isBlueGreen }}-{{ $workload.strategy.blueGreenUpdate.targetSlot }}{{ end }}"
 

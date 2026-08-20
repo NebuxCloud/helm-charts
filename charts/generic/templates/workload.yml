@@ -2,7 +2,17 @@
 {{- $workloadType := default "Deployment" $workload.type }}
 {{- $isStatefulSet := eq $workloadType "StatefulSet" }}
 {{- $hasComponents := gt (len $.Values.workloads) 1 }}
-{{- $isBlueGreen := and (hasKey (default dict $workload.strategy) "blueGreenUpdate") (not $isStatefulSet) }}
+{{- $isBlueGreen := hasKey (default dict $workload.strategy) "blueGreenUpdate" }}
+{{- if and $isBlueGreen $isStatefulSet }}
+{{- fail (printf "workloads.%s: strategy.blueGreenUpdate is only supported for Deployments, not StatefulSets" $workloadKey) }}
+{{- end }}
+{{- if $isBlueGreen }}
+{{- $bg := $workload.strategy.blueGreenUpdate }}
+{{- $validSlots := tuple "blue" "green" }}
+{{- if or (not (has (default "" $bg.currentSlot) $validSlots)) (not (has (default "" $bg.targetSlot) $validSlots)) }}
+{{- fail (printf "workloads.%s: strategy.blueGreenUpdate.currentSlot and .targetSlot must each be \"blue\" or \"green\" (got currentSlot=%q, targetSlot=%q)" $workloadKey (default "" $bg.currentSlot) (default "" $bg.targetSlot)) }}
+{{- end }}
+{{- end }}
 {{- range $slot := ($isBlueGreen | ternary (tuple "blue" "green") (tuple "")) }}
 ---
 kind: "{{ $workloadType }}"
@@ -26,10 +36,16 @@ spec:
   {{- $isTarget := eq $strategy.targetSlot $slot }}
   {{- $isCurrent := eq $strategy.currentSlot $slot }}
   {{- $isOngoing := ne $strategy.currentSlot $strategy.targetSlot }}
-  {{- if and $workload.autoscaling $isTarget }}
+  {{- if and $workload.autoscaling (or $isTarget $isCurrent) }}
   {{- else if $isCurrent }}
+  {{- if kindIs "invalid" $strategy.currentReplicas }}
+  {{- fail (printf "workloads.%s: strategy.blueGreenUpdate.currentReplicas is required when autoscaling is disabled" $workloadKey) }}
+  {{- end }}
   replicas: {{ $strategy.currentReplicas }}
   {{- else if $isOngoing }}
+  {{- if kindIs "invalid" $strategy.pastReplicas }}
+  {{- fail (printf "workloads.%s: strategy.blueGreenUpdate.pastReplicas is required when autoscaling is disabled" $workloadKey) }}
+  {{- end }}
   replicas: {{ $strategy.pastReplicas }}
   {{- else }}
   replicas: 0

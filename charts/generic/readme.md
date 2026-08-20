@@ -56,39 +56,73 @@ helm upgrade --install \
 
 #### Blue-green
 
+The rollout state (which slot is live, which one is being deployed to, and
+their replica counts) lives in the release values and is injected by the pipeline
+on every deployment. The slot the `Service` currently routes to is the
+source of truth, and any failure reading it aborts it.
+
+Deployments of the same release must be serialized (e.g. with a CI concurrency
+group): two of these scripts racing each other read and write the same slot
+state.
+
+In the chart values, `targetSlot` is the slot the `Service` routes to *right
+now*, and `currentSlot` is the slot holding the *newest* code — so a rollout is
+in progress whenever they differ.
+
 ```console
-SLOT_PAST=$(kubectl get "svc/<name>" -o jsonpath='{.spec.selector.app\.kubernetes\.io/slot}')
-SLOT_PAST=${SLOT_PAST:-green}
-SLOT_CURRENT=$([ "${SLOT_PAST}" = 'blue' ] && echo -n 'green' || echo -n 'blue')
+set -euo pipefail
 
+IMAGE_NEW="${image}:${tag}"
 
-IMAGE_CURRENT="<image>"
-IMAGE_PAST=$(kubectl get "deployment/<name>-${SLOT_PAST}" -o=jsonpath='{$.spec.template.spec.containers[:1].image}')
-IMAGE_PAST=${IMAGE_PAST:-$IMAGE_CURRENT}
+SLOT_LIVE=$(kubectl get "svc/${name}" -n "${namespace}" -o jsonpath='{.spec.selector.app\.kubernetes\.io/slot}' 2>&1) ||
+  { [[ "${SLOT_LIVE}" == *NotFound* ]] && SLOT_LIVE=''; } ||
+  { echo "Cannot read svc/${name}: ${SLOT_LIVE}" >&2; exit 1; }
 
-REPLICAS_PAST=$(kubectl get "deployment/<name>-${SLOT_PAST}" -o=jsonpath='{$.spec.replicas}')
-REPLICAS_PAST=${REPLICAS_PAST:-1}
-REPLICAS_CURRENT=$(kubectl get "deployment/<name>-${SLOT_PAST}" -o=jsonpath='{$.status.replicas}')
-REPLICAS_CURRENT=${REPLICAS_CURRENT:-1}
+case "${SLOT_LIVE}" in
+  blue|green)
+    SLOT_NEW=$([ "${SLOT_LIVE}" = 'blue' ] && echo -n 'green' || echo -n 'blue')
+    LIVE=$(kubectl get "deployment/${name}-${SLOT_LIVE}" -n "${namespace}" -o json)
+    IMAGE_LIVE=$(jq -er '.spec.template.spec.containers[] | select(.name == "default").image' <<< "${LIVE}")
+    REPLICAS_LIVE=$(jq -r '.spec.replicas // 1' <<< "${LIVE}")
+    REPLICAS_NEW=$(jq -r '.status.replicas // 1' <<< "${LIVE}")
+    ;;
+  '')
+    SLOT_LIVE='green'
+    SLOT_NEW='blue'
+    IMAGE_LIVE="${IMAGE_NEW}"
+    REPLICAS_LIVE='1'
+    REPLICAS_NEW='1'
+    ;;
+  *)
+    echo "Unexpected slot '${SLOT_LIVE}' on svc/${name}; aborting." >&2
+    exit 1
+    ;;
+esac
 
-helm upgrade --install \
-    "<name>" \
-    oci://registry.nebux.dev/charts/nebux-generic \
-    --set-string "workloads.default.strategy.blueGreenUpdate.currentSlot=${SLOT_CURRENT}" \
-    --set-string "workloads.default.strategy.blueGreenUpdate.targetSlot=${SLOT_PAST}" \
-    --set-string "workloads.default.strategy.blueGreenUpdate.pastReplicas=${REPLICAS_PAST}" \
-    --set-string "workloads.default.strategy.blueGreenUpdate.currentReplicas=${REPLICAS_CURRENT}" \
-    --set-string "workloads.default.containers.default.image.${SLOT_PAST}=${IMAGE_PAST}" \
-    --set-string "workloads.default.containers.default.image.${SLOT_CURRENT}=${IMAGE_CURRENT}" \
-    -f values.yml
+helm upgrade --install "${name}" "${chart_dir}" \
+  --namespace "${namespace}" \
+  --force-conflicts \
+  --set-string "workloads.default.strategy.blueGreenUpdate.currentSlot=${SLOT_NEW}" \
+  --set-string "workloads.default.strategy.blueGreenUpdate.targetSlot=${SLOT_LIVE}" \
+  --set-string "workloads.default.strategy.blueGreenUpdate.pastReplicas=${REPLICAS_LIVE}" \
+  --set-string "workloads.default.strategy.blueGreenUpdate.currentReplicas=${REPLICAS_NEW}" \
+  --set-string "workloads.default.containers.default.image.${SLOT_LIVE}=${IMAGE_LIVE}" \
+  --set-string "workloads.default.containers.default.image.${SLOT_NEW}=${IMAGE_NEW}" \
+  -f "${values_dir}/values.yml" \
+  -f "${values_dir}/values.${context}.yml" \
+  -f values.secrets.yml
 
-kubectl rollout status "deployment/<name>-${SLOT_CURRENT}" -w
+kubectl scale "deployment/${name}-${SLOT_NEW}" -n "${namespace}" --replicas="${REPLICAS_NEW}"
 
-helm upgrade \
-    "<name>" \
-    oci://registry.nebux.dev/charts/nebux-generic \
-    --set-string "workloads.default.strategy.blueGreenUpdate.targetSlot=${SLOT_CURRENT}" \
-    --reuse-values
+kubectl rollout status "deployment/${name}-${SLOT_NEW}" -n "${namespace}" --timeout=10m ||
+  { helm rollback "${name}" -n "${namespace}" ||
+    kubectl scale "deployment/${name}-${SLOT_NEW}" -n "${namespace}" --replicas=0; exit 1; }
+
+helm upgrade "${name}" "${chart_dir}" \
+  --namespace "${namespace}" \
+  --force-conflicts \
+  --set-string "workloads.default.strategy.blueGreenUpdate.targetSlot=${SLOT_NEW}" \
+  --reuse-values
 ```
 
 ## Configuration examples
@@ -221,45 +255,13 @@ secrets:
     #SUPER_SECRET: proto://my-fancy-software:<password>@service:1234
 ```
 
-### Database migration (pre-rollout Job hook)
-
-Run a migration once per install/upgrade, ordered **before** the workloads roll
-out, by declaring a Job with `helmHooks`. `post-install,pre-upgrade` guarantees
-the release-managed secret it reads already exists (created on install, and the
-previous revision's copy on upgrade). If the migration fails, the upgrade is
-aborted before any new pod starts.
-
-```yaml
-jobs:
-  migrate:
-    helmHooks:
-      events: [post-install, pre-upgrade]
-      weight: -5 # run before other hooks
-      deletePolicy: [before-hook-creation, hook-succeeded]
-    backoffLimit: 3
-    activeDeadlineSeconds: 900
-    ttlSecondsAfterFinished: 300
-    containers:
-      default:
-        image: registry.nebux.dev/my-fancy-api:v0.0.0
-        command:
-          - ./bin
-          - database:migrate
-        envFrom:
-          configMaps:
-            - "@default"
-          secrets:
-            - "@default"
-
-workloads:
-  default:
-    containers:
-      default:
-        image: registry.nebux.dev/my-fancy-api:v0.0.0
-        # ...
-```
-
 ### Blue-green release
+
+The values file only *enables* the strategy: the rollout state (`currentSlot`,
+`targetSlot` and the replica counts) is injected by the deployment pipeline
+(see above). The chart refuses to render without it, so an upgrade outside the
+pipeline (e.g. a manual config change) must pass `--reuse-values` to preserve
+the state — otherwise both slots would be reset.
 
 ```yaml
 workloads:
@@ -326,4 +328,42 @@ workloads:
         - name: http
           port: 80
           targetPort: http
+```
+
+### Database migration (pre-rollout Job hook)
+
+Run a migration once per install/upgrade, ordered **before** the workloads roll
+out, by declaring a Job with `helmHooks`. `post-install,pre-upgrade` guarantees
+the release-managed secret it reads already exists (created on install, and the
+previous revision's copy on upgrade). If the migration fails, the upgrade is
+aborted before any new pod starts.
+
+```yaml
+jobs:
+  migrate:
+    helmHooks:
+      events: [post-install, pre-upgrade]
+      weight: -5 # run before other hooks
+      deletePolicy: [before-hook-creation, hook-succeeded]
+    backoffLimit: 3
+    activeDeadlineSeconds: 900
+    ttlSecondsAfterFinished: 300
+    containers:
+      default:
+        image: registry.nebux.dev/my-fancy-api:v0.0.0
+        command:
+          - ./bin
+          - database:migrate
+        envFrom:
+          configMaps:
+            - "@default"
+          secrets:
+            - "@default"
+
+workloads:
+  default:
+    containers:
+      default:
+        image: registry.nebux.dev/my-fancy-api:v0.0.0
+        # ...
 ```

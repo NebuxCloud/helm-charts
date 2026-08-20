@@ -11,9 +11,10 @@ workloads: {}
   #      maxUnavailable: 1
   #      maxSurge: 1
   #    blueGreenUpdate:
-  #      currentSlot: ""
-  #      targetSlot: ""
-  #      pastReplicas: 1
+  #      currentSlot: ""     # slot holding the newest code (the one being deployed to)
+  #      targetSlot: ""      # slot the Service routes traffic to right now
+  #      currentReplicas: 1  # replicas for the current slot (ignored with autoscaling)
+  #      pastReplicas: 1     # replicas kept on the previous slot mid-rollout (ignored with autoscaling)
   #
   #  # StatefulSet only:
   #  strategy:
