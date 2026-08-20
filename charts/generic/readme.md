@@ -72,6 +72,15 @@ in progress whenever they differ.
 ```console
 set -euo pipefail
 
+name='<name>'                                          # release name
+namespace='<namespace>'
+context='<environment>'                                # selects values.<environment>.yml
+chart='oci://registry.nebux.dev/charts/nebux-generic'
+chart_version='<x.y.z>'
+values_dir='<values directory>'
+image='<image>'                                        # repository, without the tag
+tag='<tag>'
+
 IMAGE_NEW="${image}:${tag}"
 
 SLOT_LIVE=$(kubectl get "svc/${name}" -n "${namespace}" -o jsonpath='{.spec.selector.app\.kubernetes\.io/slot}' 2>&1) ||
@@ -99,7 +108,8 @@ case "${SLOT_LIVE}" in
     ;;
 esac
 
-helm upgrade --install "${name}" "${chart_dir}" \
+helm upgrade --install "${name}" "${chart}" \
+  --version "${chart_version}" \
   --namespace "${namespace}" \
   --force-conflicts \
   --set-string "workloads.default.strategy.blueGreenUpdate.currentSlot=${SLOT_NEW}" \
@@ -109,8 +119,7 @@ helm upgrade --install "${name}" "${chart_dir}" \
   --set-string "workloads.default.containers.default.image.${SLOT_LIVE}=${IMAGE_LIVE}" \
   --set-string "workloads.default.containers.default.image.${SLOT_NEW}=${IMAGE_NEW}" \
   -f "${values_dir}/values.yml" \
-  -f "${values_dir}/values.${context}.yml" \
-  -f values.secrets.yml
+  -f "${values_dir}/values.${context}.yml"
 
 kubectl scale "deployment/${name}-${SLOT_NEW}" -n "${namespace}" --replicas="${REPLICAS_NEW}"
 
@@ -118,7 +127,8 @@ kubectl rollout status "deployment/${name}-${SLOT_NEW}" -n "${namespace}" --time
   { helm rollback "${name}" -n "${namespace}" ||
     kubectl scale "deployment/${name}-${SLOT_NEW}" -n "${namespace}" --replicas=0; exit 1; }
 
-helm upgrade "${name}" "${chart_dir}" \
+helm upgrade "${name}" "${chart}" \
+  --version "${chart_version}" \
   --namespace "${namespace}" \
   --force-conflicts \
   --set-string "workloads.default.strategy.blueGreenUpdate.targetSlot=${SLOT_NEW}" \
