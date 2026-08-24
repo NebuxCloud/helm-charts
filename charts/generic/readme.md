@@ -69,6 +69,14 @@ In the chart values, `targetSlot` is the slot the `Service` routes to *right
 now*, and `currentSlot` is the slot holding the *newest* code — so a rollout is
 in progress whenever they differ.
 
+Both upgrades run with `--server-side=true --force-conflicts`. When the
+previous slot is retired, Helm has to write `replicas: 0` on a field owned by
+the autoscaler, and only server-side apply with forced conflicts can reclaim
+it. Server-side apply must be requested explicitly because Helm's default
+(`--server-side=auto`) inherits the method of the release's previous revision,
+so a release first installed client-side would otherwise reject
+`--force-conflicts`.
+
 ```console
 set -euo pipefail
 
@@ -111,6 +119,7 @@ esac
 helm upgrade --install "${name}" "${chart}" \
   --version "${chart_version}" \
   --namespace "${namespace}" \
+  --server-side=true \
   --force-conflicts \
   --set-string "workloads.default.strategy.blueGreenUpdate.currentSlot=${SLOT_NEW}" \
   --set-string "workloads.default.strategy.blueGreenUpdate.targetSlot=${SLOT_LIVE}" \
@@ -130,6 +139,7 @@ kubectl rollout status "deployment/${name}-${SLOT_NEW}" -n "${namespace}" --time
 helm upgrade "${name}" "${chart}" \
   --version "${chart_version}" \
   --namespace "${namespace}" \
+  --server-side=true \
   --force-conflicts \
   --set-string "workloads.default.strategy.blueGreenUpdate.targetSlot=${SLOT_NEW}" \
   --reuse-values
