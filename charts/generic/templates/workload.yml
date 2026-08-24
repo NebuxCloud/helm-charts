@@ -50,7 +50,8 @@ spec:
   {{- else }}
   replicas: 0
   {{- end }}
-  {{- else if $workload.replicas }}
+  {{- else if hasKey $workload "replicas" }}
+  {{- /* hasKey, not truthiness: zero replicas is a workload asked to stop. */}}
   replicas: {{ $workload.replicas }}
   {{- end }}
 
