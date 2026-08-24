@@ -59,6 +59,14 @@ entries:
     version: 1.0.0
   nebux-generic:
   - apiVersion: v2
+    created: "2026-08-24T14:36:48.215112719Z"
+    digest: 841e1c38b4b4b58f0e8fe9dc7761d9bd830f7c463dcff9fb64e2412776c407fd
+    name: nebux-generic
+    type: application
+    urls:
+    - https://github.com/NebuxCloud/helm-charts/releases/download/nebux-generic-4.1.0/nebux-generic-4.1.0.tgz
+    version: 4.1.0
+  - apiVersion: v2
     created: "2026-08-20T12:28:56.338591737Z"
     digest: 66ff58c1376ad1e1c3ea87c62d2b640ebc1ea8dfc1f01d9040640f3acaa865e5
     name: nebux-generic
@@ -187,4 +195,4 @@ entries:
     urls:
     - https://github.com/NebuxCloud/helm-charts/releases/download/stateless-1.0.0/stateless-1.0.0.tgz
     version: 1.0.0
-generated: "2026-08-20T12:28:56.338644696Z"
+generated: "2026-08-24T14:36:48.215187689Z"
