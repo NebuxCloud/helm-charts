@@ -1,7 +1,7 @@
 {{- range $workloadKey, $workload := .Values.workloads }}
 {{- $workloadType := default "Deployment" $workload.type }}
 {{- $isStatefulSet := eq $workloadType "StatefulSet" }}
-{{- $hasComponents := gt (len $.Values.workloads) 1 }}
+{{- $hasComponents := include "nebux-generic.isKeyed" (dict "root" $ "kind" "workloads") }}
 {{- $isBlueGreen := hasKey (default dict $workload.strategy) "blueGreenUpdate" }}
 {{- if and $isBlueGreen $isStatefulSet }}
 {{- fail (printf "workloads.%s: strategy.blueGreenUpdate is only supported for Deployments, not StatefulSets" $workloadKey) }}
@@ -19,7 +19,7 @@ kind: "{{ $workloadType }}"
 apiVersion: apps/v1
 
 metadata:
-  name: "{{ $.Release.Name }}{{ if $hasComponents }}-{{ $workloadKey }}{{ end }}{{ if $isBlueGreen }}-{{ $slot }}{{ end }}"
+  name: "{{ include "nebux-generic.name" (dict "root" $ "kind" "workloads" "key" $workloadKey) }}{{ if $isBlueGreen }}-{{ $slot }}{{ end }}"
   namespace: "{{ $.Release.Namespace }}"
   labels:
     app.kubernetes.io/instance: "{{ $.Release.Name }}"
@@ -70,7 +70,7 @@ spec:
   {{- end }}
 
   {{- if hasKey $workload "serviceName" }}
-  serviceName: "{{ include "nebux-generic.resourceName" (dict "name" $workload.serviceName "release" $.Release.Name) }}"
+  serviceName: "{{ include "nebux-generic.reference" (dict "root" $ "name" $workload.serviceName) }}"
   {{- end }}
 
   {{- if hasKey $workload "podManagementPolicy" }}
@@ -85,7 +85,7 @@ spec:
   volumeClaimTemplates:
     {{- range $volume := $workload.volumeClaimTemplates }}
     - metadata:
-        name: "{{ include "nebux-generic.resourceName" (dict "name" $volume.metadata.name "release" $.Release.Name) }}"
+        name: "{{ include "nebux-generic.reference" (dict "root" $ "name" $volume.metadata.name) }}"
       spec: {{ toYaml $volume.spec | nindent 8 }}
     {{- end }}
   {{- end }}
@@ -174,7 +174,7 @@ spec:
       {{- if hasKey $workload "imagePullSecrets" }}
       imagePullSecrets:
         {{- range $pullSecret := $workload.imagePullSecrets }}
-        - name: "{{ include "nebux-generic.resourceName" (dict "name" $pullSecret.name "release" $.Release.Name) }}"
+        - name: "{{ include "nebux-generic.reference" (dict "root" $ "name" $pullSecret.name) }}"
         {{- end }}
       {{- end }}
 
@@ -201,7 +201,7 @@ spec:
       {{- end }}
 
       {{- if hasKey $workload "serviceAccountName" }}
-      serviceAccountName: "{{ include "nebux-generic.resourceName" (dict "name" $workload.serviceAccountName "release" $.Release.Name) }}"
+      serviceAccountName: "{{ include "nebux-generic.reference" (dict "root" $ "name" $workload.serviceAccountName) }}"
       {{- end }}
 
       {{- range $containerType := tuple "initContainers" "containers" }}
@@ -241,11 +241,11 @@ spec:
           envFrom:
             {{- range $configMap := $container.envFrom.configMaps }}
             - configMapRef:
-                name: "{{ include "nebux-generic.configRef" (dict "name" $configMap "release" $.Release.Name "count" (len $.Values.configMaps)) }}"
+                name: "{{ include "nebux-generic.reference" (dict "root" $ "kind" "configMaps" "name" $configMap) }}"
             {{- end }}
             {{- range $secret := $container.envFrom.secrets }}
             - secretRef:
-                name: "{{ include "nebux-generic.configRef" (dict "name" $secret "release" $.Release.Name "count" (len $.Values.secrets)) }}"
+                name: "{{ include "nebux-generic.reference" (dict "root" $ "kind" "secrets" "name" $secret) }}"
             {{- end }}
           {{- end }}
 
@@ -253,10 +253,10 @@ spec:
           {{- $envs := list }}
           {{- range $env := $container.env }}
           {{- if hasKey (default dict $env.valueFrom) "secretKeyRef" }}
-          {{- $name := include "nebux-generic.configRef" (dict "name" $env.valueFrom.secretKeyRef.name "release" $.Release.Name "count" (len $.Values.secrets)) }}
+          {{- $name := include "nebux-generic.reference" (dict "root" $ "kind" "secrets" "name" $env.valueFrom.secretKeyRef.name) }}
           {{- $env = mergeOverwrite (deepCopy $env) (dict "valueFrom" (dict "secretKeyRef" (dict "name" $name))) }}
           {{- else if hasKey (default dict $env.valueFrom) "configMapKeyRef" }}
-          {{- $name := include "nebux-generic.configRef" (dict "name" $env.valueFrom.configMapKeyRef.name "release" $.Release.Name "count" (len $.Values.configMaps)) }}
+          {{- $name := include "nebux-generic.reference" (dict "root" $ "kind" "configMaps" "name" $env.valueFrom.configMapKeyRef.name) }}
           {{- $env = mergeOverwrite (deepCopy $env) (dict "valueFrom" (dict "configMapKeyRef" (dict "name" $name))) }}
           {{- end }}
           {{- $envs = append $envs $env }}

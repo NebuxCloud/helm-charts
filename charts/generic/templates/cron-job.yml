@@ -1,11 +1,11 @@
 {{- range $cronJobKey, $cronJob := .Values.cronJobs }}
-{{- $hasComponents := gt (len $.Values.cronJobs) 1 }}
+{{- $hasComponents := include "nebux-generic.isKeyed" (dict "root" $ "kind" "cronJobs") }}
 ---
 kind: CronJob
 apiVersion: batch/v1
 
 metadata:
-  name: "{{ $.Release.Name }}{{ if $hasComponents }}-{{ $cronJobKey }}{{ end }}"
+  name: "{{ include "nebux-generic.name" (dict "root" $ "kind" "cronJobs" "key" $cronJobKey) }}"
   namespace: "{{ $.Release.Namespace }}"
   labels:
     app.kubernetes.io/instance: "{{ $.Release.Name }}"
@@ -104,7 +104,7 @@ spec:
           {{- if hasKey $cronJob "imagePullSecrets" }}
           imagePullSecrets:
             {{- range $pullSecret := $cronJob.imagePullSecrets }}
-            - name: "{{ include "nebux-generic.resourceName" (dict "name" $pullSecret.name "release" $.Release.Name) }}"
+            - name: "{{ include "nebux-generic.reference" (dict "root" $ "name" $pullSecret.name) }}"
             {{- end }}
           {{- end }}
 
@@ -131,7 +131,7 @@ spec:
           {{- end }}
 
           {{- if hasKey $cronJob "serviceAccountName" }}
-          serviceAccountName: "{{ include "nebux-generic.resourceName" (dict "name" $cronJob.serviceAccountName "release" $.Release.Name) }}"
+          serviceAccountName: "{{ include "nebux-generic.reference" (dict "root" $ "name" $cronJob.serviceAccountName) }}"
           {{- end }}
 
           {{- range $containerType := tuple "initContainers" "containers" }}
@@ -165,11 +165,11 @@ spec:
               envFrom:
                 {{- range $configMap := $container.envFrom.configMaps }}
                 - configMapRef:
-                    name: "{{ include "nebux-generic.configRef" (dict "name" $configMap "release" $.Release.Name "count" (len $.Values.configMaps)) }}"
+                    name: "{{ include "nebux-generic.reference" (dict "root" $ "kind" "configMaps" "name" $configMap) }}"
                 {{- end }}
                 {{- range $secret := $container.envFrom.secrets }}
                 - secretRef:
-                    name: "{{ include "nebux-generic.configRef" (dict "name" $secret "release" $.Release.Name "count" (len $.Values.secrets)) }}"
+                    name: "{{ include "nebux-generic.reference" (dict "root" $ "kind" "secrets" "name" $secret) }}"
                 {{- end }}
               {{- end }}
 
@@ -177,10 +177,10 @@ spec:
               {{- $envs := list }}
               {{- range $env := $container.env }}
               {{- if hasKey (default dict $env.valueFrom) "secretKeyRef" }}
-              {{- $name := include "nebux-generic.configRef" (dict "name" $env.valueFrom.secretKeyRef.name "release" $.Release.Name "count" (len $.Values.secrets)) }}
+              {{- $name := include "nebux-generic.reference" (dict "root" $ "kind" "secrets" "name" $env.valueFrom.secretKeyRef.name) }}
               {{- $env = mergeOverwrite (deepCopy $env) (dict "valueFrom" (dict "secretKeyRef" (dict "name" $name))) }}
               {{- else if hasKey (default dict $env.valueFrom) "configMapKeyRef" }}
-              {{- $name := include "nebux-generic.configRef" (dict "name" $env.valueFrom.configMapKeyRef.name "release" $.Release.Name "count" (len $.Values.configMaps)) }}
+              {{- $name := include "nebux-generic.reference" (dict "root" $ "kind" "configMaps" "name" $env.valueFrom.configMapKeyRef.name) }}
               {{- $env = mergeOverwrite (deepCopy $env) (dict "valueFrom" (dict "configMapKeyRef" (dict "name" $name))) }}
               {{- end }}
               {{- $envs = append $envs $env }}

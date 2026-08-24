@@ -4,7 +4,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 
 metadata:
-  name: "{{ $.Release.Name }}{{ if gt (len $.Values.persistentVolumeClaims) 1 }}-{{ $pvcKey }}{{ end }}"
+  name: "{{ include "nebux-generic.name" (dict "root" $ "kind" "persistentVolumeClaims" "key" $pvcKey) }}"
   namespace: "{{ $.Release.Namespace }}"
   labels:
     app.kubernetes.io/instance: "{{ $.Release.Name }}"

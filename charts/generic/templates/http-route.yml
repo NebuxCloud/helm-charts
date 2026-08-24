@@ -1,11 +1,10 @@
 {{- range $httpRoute := .Values.httpRoutes }}
-{{- $hasHttpRoutes := gt (len $.Values.httpRoutes) 1 }}
 ---
 kind: HTTPRoute
 apiVersion: gateway.networking.k8s.io/v1
 
 metadata:
-  name: "{{ $.Release.Name }}{{ if $hasHttpRoutes }}-{{ $httpRoute.name }}{{ end }}"
+  name: "{{ include "nebux-generic.name" (dict "root" $ "kind" "httpRoutes" "key" $httpRoute.name) }}"
   namespace: "{{ $.Release.Namespace }}"
   labels:
     app.kubernetes.io/instance: "{{ $.Release.Name }}"
@@ -41,9 +40,13 @@ spec:
         - port: {{ dig "port" "80" $backendRef }}
 
           {{- if hasKey $backendRef "name" }}
-          name: "{{ include "nebux-generic.resourceName" (dict "name" $backendRef.name "release" $.Release.Name) }}"
+          {{- if eq $backendRef.name "@" }}
+          name: "{{ include "nebux-generic.defaultBackend" $ }}"
           {{- else }}
-          name: "{{ $.Release.Name }}"
+          name: "{{ include "nebux-generic.reference" (dict "root" $ "kind" "workloads" "name" $backendRef.name) }}"
+          {{- end }}
+          {{- else }}
+          name: "{{ include "nebux-generic.defaultBackend" $ }}"
           {{- end }}
           
           {{- if hasKey $backendRef "group" }}

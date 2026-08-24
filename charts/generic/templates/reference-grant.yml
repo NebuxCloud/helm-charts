@@ -1,11 +1,10 @@
 {{- range $referenceGrant := .Values.referenceGrants }}
-{{- $hasReferenceGrants := gt (len $.Values.referenceGrants) 1 }}
 ---
 kind: ReferenceGrant
 apiVersion: gateway.networking.k8s.io/v1beta1
 
 metadata:
-  name: "{{ $.Release.Name }}{{ if $hasReferenceGrants }}-{{ $referenceGrant.name }}{{ end }}"
+  name: "{{ include "nebux-generic.name" (dict "root" $ "kind" "referenceGrants" "key" $referenceGrant.name) }}"
   namespace: "{{ $.Release.Namespace }}"
   labels:
     app.kubernetes.io/instance: "{{ $.Release.Name }}"

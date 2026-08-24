@@ -1,66 +1,42 @@
-{{/*
-Resolve a reference to a named resource using the "@" convention.
+{{/* Name a resource this chart creates, from its collection's key. */}}
+{{- define "nebux-generic.name" -}}
+{{ .root.Release.Name }}{{ if and .key (include "nebux-generic.isKeyed" .) }}-{{ .key }}{{ end }}
+{{- end -}}
 
-A name prefixed with "@" is release-managed: the release name is prepended,
-and the remainder (if any) is appended as a suffix. A bare "@" resolves to the
-release name alone. Any other name is used verbatim, allowing references to
-resources outside this release.
-
-Usage:
-  {{ include "nebux-generic.resourceName" (dict "name" $name "release" $.Release.Name) }}
-*/}}
-{{- define "nebux-generic.resourceName" -}}
+{{/* Resolve a reference: "@key" is release-managed, a bare "@" the release itself, anything else verbatim. */}}
+{{- define "nebux-generic.reference" -}}
 {{- if hasPrefix "@" .name -}}
-{{ .release }}{{ if ne .name "@" }}-{{ trimPrefix "@" .name }}{{ end }}
+{{ include "nebux-generic.name" (dict "root" .root "kind" .kind "key" (trimPrefix "@" .name)) }}
 {{- else -}}
 {{ .name }}
 {{- end -}}
 {{- end -}}
 
-{{/*
-Resolve a namespace using the "@" convention.
+{{/* Whether a name carries its key: more than one of its kind, or "explicitNames". Without a "kind", always. */}}
+{{- define "nebux-generic.isKeyed" -}}
+{{- if or (not .kind) .root.Values.explicitNames (gt (len (index .root.Values .kind)) 1) }}true{{ end }}
+{{- end -}}
 
-A bare "@" resolves to the release namespace; any other value is used verbatim.
-
-Usage:
-  {{ include "nebux-generic.namespace" (dict "namespace" $namespace "release" $.Release.Namespace) }}
-*/}}
+{{/* Resolve a namespace: "@" is the release's own. */}}
 {{- define "nebux-generic.namespace" -}}
 {{- if eq .namespace "@" -}}
-{{ .release }}
+{{ .root.Release.Namespace }}
 {{- else -}}
 {{ .namespace }}
 {{- end -}}
 {{- end -}}
 
-{{/*
-Resolve a reference to a release-managed config map or secret using the "@"
-convention, mirroring how those resources are named.
 
-A name prefixed with "@" is release-managed: the release name is prepended, and
-the key (the remainder) is only appended as a suffix when more than one config
-map/secret of that kind is defined (matching the naming in config-map.yml and
-secret.yml). Any other name is used verbatim, allowing references to config
-maps/secrets outside this release.
-
-Usage:
-  {{ include "nebux-generic.configRef" (dict "name" $name "release" $.Release.Name "count" (len $.Values.secrets)) }}
-*/}}
-{{- define "nebux-generic.configRef" -}}
-{{- if hasPrefix "@" .name -}}
-{{ .release }}{{ if gt (int .count) 1 }}-{{ trimPrefix "@" .name }}{{ end }}
+{{/* The release's only service, for a backendRef that names none. */}}
+{{- define "nebux-generic.defaultBackend" -}}
+{{- if eq (len .Values.workloads) 1 -}}
+{{ include "nebux-generic.name" (dict "root" . "kind" "workloads" "key" (keys .Values.workloads | first)) }}
 {{- else -}}
-{{ .name }}
+{{- fail "a backendRef must name its service: this release has no single default" -}}
 {{- end -}}
 {{- end -}}
 
-{{/*
-Render a value that Kubernetes expects as a comma-separated string (e.g. annotations).
-Accepts either a list (joined with ",") or a plain string (used verbatim), so both forms are valid.
-
-Usage:
-  {{ include "nebux-generic.csv" $job.helmHooks.events }}
-*/}}
+{{/* Render what Kubernetes wants comma-separated, from a list or a string. */}}
 {{- define "nebux-generic.csv" -}}
 {{- if kindIs "string" . -}}
 {{ . }}

@@ -4,7 +4,7 @@ kind: ConfigMap
 apiVersion: v1
 
 metadata:
-  name: "{{ $.Release.Name }}{{ if gt (len $.Values.configMaps) 1 }}-{{ $configKey }}{{ end }}"
+  name: "{{ include "nebux-generic.name" (dict "root" $ "kind" "configMaps" "key" $configKey) }}"
   namespace: "{{ $.Release.Namespace }}"
   labels:
     app.kubernetes.io/instance: "{{ $.Release.Name }}"

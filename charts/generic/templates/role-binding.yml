@@ -7,8 +7,8 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 
 metadata:
-  name: "{{ include "nebux-generic.resourceName" (dict "name" $name "release" $.Release.Name) }}"
-  namespace: "{{ include "nebux-generic.namespace" (dict "namespace" $namespace "release" $.Release.Namespace) }}"
+  name: "{{ include "nebux-generic.reference" (dict "root" $ "name" $name) }}"
+  namespace: "{{ include "nebux-generic.namespace" (dict "root" $ "namespace" $namespace) }}"
 
   labels:
     app.kubernetes.io/instance: "{{ $.Release.Name }}"
@@ -16,7 +16,7 @@ metadata:
 roleRef:
   kind: "{{ $binding.ref.kind }}"
   apiGroup: rbac.authorization.k8s.io
-  name: "{{ include "nebux-generic.resourceName" (dict "name" $binding.ref.name "release" $.Release.Name) }}"
+  name: "{{ include "nebux-generic.reference" (dict "root" $ "name" $binding.ref.name) }}"
 
 subjects:
   {{- range $subject := $binding.subjects }}
@@ -24,10 +24,10 @@ subjects:
     {{- if ne $subject.kind "ServiceAccount" }}
     apiGroup: rbac.authorization.k8s.io
     {{- end }}
-    name: "{{ include "nebux-generic.resourceName" (dict "name" $subject.name "release" $.Release.Name) }}"
+    name: "{{ include "nebux-generic.reference" (dict "root" $ "name" $subject.name) }}"
 
     {{- if hasKey $subject "namespace" }}
-    namespace: "{{ include "nebux-generic.namespace" (dict "namespace" $subject.namespace "release" $.Release.Namespace) }}"
+    namespace: "{{ include "nebux-generic.namespace" (dict "root" $ "namespace" $subject.namespace) }}"
     {{- end }}
   {{- end }}
 {{- end }}

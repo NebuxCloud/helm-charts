@@ -1,12 +1,12 @@
 {{- range $workloadKey, $workload := .Values.workloads }}
 {{- if $workload.networkPolicy }}
-{{- $hasComponents := gt (len $.Values.workloads) 1 }}
+{{- $hasComponents := include "nebux-generic.isKeyed" (dict "root" $ "kind" "workloads") }}
 ---
 kind: NetworkPolicy
 apiVersion: networking.k8s.io/v1
 
 metadata:
-  name: "{{ $.Release.Name }}{{ if $hasComponents }}-{{ $workloadKey }}{{ end }}"
+  name: "{{ include "nebux-generic.name" (dict "root" $ "kind" "workloads" "key" $workloadKey) }}"
   namespace: "{{ $.Release.Namespace }}"
   labels:
     app.kubernetes.io/instance: "{{ $.Release.Name }}"

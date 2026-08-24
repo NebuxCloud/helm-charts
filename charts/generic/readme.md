@@ -150,9 +150,15 @@ secrets, RBAC roles/bindings, HTTP/TCP/UDP route backends, an ingress' service a
   this release (created by another release, an operator such as
   [External Secrets](https://external-secrets.io/), etc.).
 
-Config maps and secrets are a special case: as they are auto-named after the
-release, the key is only appended when more than one is defined (`@foo` →
-`<release>` with a single secret, or `<release>-foo` with several).
+Workloads, config maps, secrets, persistent volume claims, jobs, cron jobs and routes
+are auto-named after the release, so the key is only appended when more than one is
+defined (`@foo` → `<release>` with a single secret, or `<release>-foo` with several).
+A reference resolves the same way the name did, so `@web` reaches the service whether
+there is one workload or ten.
+
+Set **`explicitNames: true`** to always append the key. Longer names, in exchange for
+adding a second workload never renaming the first one's deployment, service and claim
+— a recreation, and for a claim an empty volume.
 
 ```yaml
 workloads:

@@ -1,13 +1,13 @@
 {{- range $workloadKey, $workload := .Values.workloads }}
 {{- if $workload.autoscaling }}
-{{- $hasComponents := gt (len $.Values.workloads) 1 }}
+{{- $hasComponents := include "nebux-generic.isKeyed" (dict "root" $ "kind" "workloads") }}
 {{- $isBlueGreen := hasKey (default dict $workload.strategy) "blueGreenUpdate" }}
 ---
 kind: HorizontalPodAutoscaler
 apiVersion: autoscaling/v1
 
 metadata:
-  name: "{{ $.Release.Name }}{{ if $hasComponents }}-{{ $workloadKey }}{{ end }}"
+  name: "{{ include "nebux-generic.name" (dict "root" $ "kind" "workloads" "key" $workloadKey) }}"
   namespace: "{{ $.Release.Namespace }}"
   labels:
     app.kubernetes.io/instance: "{{ $.Release.Name }}"
@@ -19,7 +19,7 @@ spec:
   scaleTargetRef:
     kind: "{{ default "Deployment" $workload.type }}"
     apiVersion: apps/v1
-    name: "{{ $.Release.Name }}{{ if $hasComponents }}-{{ $workloadKey }}{{ end }}{{ if $isBlueGreen }}-{{ $workload.strategy.blueGreenUpdate.targetSlot }}{{ end }}"
+    name: "{{ include "nebux-generic.name" (dict "root" $ "kind" "workloads" "key" $workloadKey) }}{{ if $isBlueGreen }}-{{ $workload.strategy.blueGreenUpdate.targetSlot }}{{ end }}"
 
   targetCPUUtilizationPercentage: {{ $workload.autoscaling.targetCPUUtilizationPercentage }}
   

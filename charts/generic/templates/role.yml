@@ -6,8 +6,8 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 
 metadata:
-  name: "{{ include "nebux-generic.resourceName" (dict "name" $role.name "release" $.Release.Name) }}"
-  namespace: "{{ include "nebux-generic.namespace" (dict "namespace" $namespace "release" $.Release.Namespace) }}"
+  name: "{{ include "nebux-generic.reference" (dict "root" $ "name" $role.name) }}"
+  namespace: "{{ include "nebux-generic.namespace" (dict "root" $ "namespace" $namespace) }}"
 
   labels:
     app.kubernetes.io/instance: "{{ $.Release.Name }}"

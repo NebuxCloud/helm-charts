@@ -1,3 +1,7 @@
+# Always append a resource's key to its name, so that adding a second workload,
+# config map, secret or claim never renames the first.
+explicitNames: false
+
 workloads: {}
   #default:
   #  type: Deployment # Deployment (default) or StatefulSet
