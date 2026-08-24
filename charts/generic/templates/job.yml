@@ -98,20 +98,7 @@ spec:
 
       {{- if hasKey $job "volumes" }}
       volumes:
-        {{- range $volume := $job.volumes }}
-        - name: "{{ $volume.name }}"
-          {{- if hasKey $volume "configMap" }}
-          configMap:
-            name: "{{ include "nebux-generic.configRef" (dict "name" $volume.configMap.name "release" $.Release.Name "count" (len $.Values.configMaps)) }}"
-          {{- end }}
-          {{- if hasKey $volume "secret" }}
-          secret:
-            secretName: "{{ include "nebux-generic.configRef" (dict "name" $volume.secret.secretName "release" $.Release.Name "count" (len $.Values.secrets)) }}"
-          {{- end }}
-          {{- if hasKey $volume "hostPath" }}
-          hostPath: {{ toYaml $volume.hostPath | nindent 12 }}
-          {{- end }}
-        {{- end }}
+        {{- include "nebux-generic.volumes" (dict "root" $ "volumes" $job.volumes) | trim | nindent 8 }}
       {{- end }}
 
       {{- if hasKey $job "securityContext" }}

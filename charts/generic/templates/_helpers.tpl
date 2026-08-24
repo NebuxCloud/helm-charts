@@ -26,6 +26,43 @@
 {{- end -}}
 {{- end -}}
 
+{{/* Render a pod's volumes. */}}
+{{- define "nebux-generic.volumes" -}}
+{{- range $volume := .volumes }}
+- name: "{{ $volume.name }}"
+  {{- if hasKey $volume "configMap" }}
+  configMap:
+    name: "{{ include "nebux-generic.reference" (dict "root" $.root "kind" "configMaps" "name" $volume.configMap.name) }}"
+    {{- with omit $volume.configMap "name" }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  {{- if hasKey $volume "secret" }}
+  secret:
+    secretName: "{{ include "nebux-generic.reference" (dict "root" $.root "kind" "secrets" "name" $volume.secret.secretName) }}"
+    {{- with omit $volume.secret "secretName" }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  {{- if hasKey $volume "persistentVolumeClaim" }}
+  persistentVolumeClaim:
+    claimName: "{{ include "nebux-generic.reference" (dict "root" $.root "kind" "persistentVolumeClaims" "name" $volume.persistentVolumeClaim.claimName) }}"
+    {{- with omit $volume.persistentVolumeClaim "claimName" }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  {{- if hasKey $volume "emptyDir" }}
+  {{- with $volume.emptyDir }}
+  emptyDir: {{ toYaml . | nindent 4 }}
+  {{- else }}
+  emptyDir: {}
+  {{- end }}
+  {{- end }}
+  {{- if hasKey $volume "hostPath" }}
+  hostPath: {{ toYaml $volume.hostPath | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end -}}
 
 {{/* The release's only service, for a backendRef that names none. */}}
 {{- define "nebux-generic.defaultBackend" -}}

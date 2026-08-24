@@ -48,7 +48,20 @@ workloads: {}
   #  enableServiceLinks: true
   #  imagePullSecrets:
   #    - name: registry
-  #  volumes: []
+  #  volumes:
+  #    - name: static
+  #      emptyDir: {}                            # or {medium: Memory, sizeLimit: 64Mi}
+  #    - name: data
+  #      persistentVolumeClaim:
+  #        claimName: "@data"                    # "@<key>" for release-managed, "<name>" for external
+  #    - name: app-config
+  #      configMap:
+  #        name: "@default"                      # "@<key>" for release-managed, "<name>" for external
+  #    - name: tls
+  #      secret:
+  #        secretName: certificate-example-org
+  #    - name: logs
+  #      hostPath: {path: /var/log}
   #  securityContext: {}
   #  serviceAccountName: ""
   #
@@ -150,7 +163,7 @@ jobs: {}
 #    enableServiceLinks: true
 #    imagePullSecrets:
 #      - name: registry
-#    volumes: []
+#    volumes: [] # same kinds as workloads
 #    securityContext: {}
 #    serviceAccountName: ""
 #
@@ -206,7 +219,7 @@ cronJobs: {}
 #    enableServiceLinks: true
 #    imagePullSecrets:
 #      - name: registry
-#    volumes: []
+#    volumes: [] # same kinds as workloads
 #    securityContext: {}
 #    serviceAccountName: ""
 #

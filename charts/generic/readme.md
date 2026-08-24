@@ -17,7 +17,7 @@ This Helm chart allows orchestrating generic workloads with Kubernetes, reducing
 - 🪝 **Lifecycle hooks.** Run one-shot [jobs](https://kubernetes.io/docs/concepts/workloads/controllers/job/) as [Helm hooks](https://helm.sh/docs/topics/charts_hooks/) (e.g. a database migration that must complete before the workloads roll out).
 - ♟️ **Deployment strategies.** Deploy changes with a blue-green strategy (non-native in Kubernetes) as well as the native ones (rolling and recreate).
 - 📜 **Configuration.** Inject [config maps](https://kubernetes.io/docs/concepts/configuration/configmap/) and [secrets](https://kubernetes.io/docs/concepts/configuration/secret/) as environment variables, or mount them with [volumes](https://kubernetes.io/docs/concepts/storage/volumes/).
-- 💾 **Persistence.** Store persistent data from workloads with [persistent volume claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
+- 💾 **Persistence.** Store persistent data with [persistent volume claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/), mountable from any workload, job or cron job.
 - 🪜 **Scaling.** Scale workloads with [horizontal pod autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/).
 - 🌍 **Ingress/gateway.** Expose your workloads' services using the [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) and the [Gateway](https://gateway-api.sigs.k8s.io/) APIs, with HTTP, TCP and UDP routes.
 - 🔒 **Security.** Secure your workloads with [network policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/) and [security contexts](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) (at pod and container levels).
@@ -179,6 +179,13 @@ workloads:
       - name: tls
         secret:
           secretName: certificate-example-org  # external secret, used as-is
+
+      - name: data
+        persistentVolumeClaim:
+          claimName: "@default" # release-managed claim
+
+      - name: scratch
+        emptyDir: {} # shared between the containers of this pod
 ```
 
 ### Rolling release
