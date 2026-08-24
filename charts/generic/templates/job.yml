@@ -105,6 +105,10 @@ spec:
       securityContext: {{ toYaml $job.securityContext | nindent 8 }}
       {{- end }}
 
+      {{- if hasKey $job "automountServiceAccountToken" }}
+      automountServiceAccountToken: {{ $job.automountServiceAccountToken }}
+      {{- end }}
+
       {{- if hasKey $job "serviceAccountName" }}
       serviceAccountName: "{{ include "nebux-generic.reference" (dict "root" $ "name" $job.serviceAccountName) }}"
       {{- end }}

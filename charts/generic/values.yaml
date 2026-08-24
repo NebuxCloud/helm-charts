@@ -46,6 +46,7 @@ workloads: {}
   #
   #  restartPolicy: Always
   #  enableServiceLinks: true
+  #  automountServiceAccountToken: true
   #  imagePullSecrets:
   #    - name: registry
   #  volumes:
@@ -161,6 +162,7 @@ jobs: {}
 #
 #    restartPolicy: Never
 #    enableServiceLinks: true
+#    automountServiceAccountToken: true
 #    imagePullSecrets:
 #      - name: registry
 #    volumes: [] # same kinds as workloads
@@ -217,6 +219,7 @@ cronJobs: {}
 #
 #    restartPolicy: Always
 #    enableServiceLinks: true
+#    automountServiceAccountToken: true
 #    imagePullSecrets:
 #      - name: registry
 #    volumes: [] # same kinds as workloads

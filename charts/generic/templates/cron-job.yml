@@ -117,6 +117,10 @@ spec:
           securityContext: {{ toYaml $cronJob.securityContext | nindent 12 }}
           {{- end }}
 
+          {{- if hasKey $cronJob "automountServiceAccountToken" }}
+          automountServiceAccountToken: {{ $cronJob.automountServiceAccountToken }}
+          {{- end }}
+
           {{- if hasKey $cronJob "serviceAccountName" }}
           serviceAccountName: "{{ include "nebux-generic.reference" (dict "root" $ "name" $cronJob.serviceAccountName) }}"
           {{- end }}

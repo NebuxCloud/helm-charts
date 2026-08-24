@@ -187,6 +187,10 @@ spec:
       securityContext: {{ toYaml $workload.securityContext | nindent 8 }}
       {{- end }}
 
+      {{- if hasKey $workload "automountServiceAccountToken" }}
+      automountServiceAccountToken: {{ $workload.automountServiceAccountToken }}
+      {{- end }}
+
       {{- if hasKey $workload "serviceAccountName" }}
       serviceAccountName: "{{ include "nebux-generic.reference" (dict "root" $ "name" $workload.serviceAccountName) }}"
       {{- end }}
