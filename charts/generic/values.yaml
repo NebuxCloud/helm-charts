@@ -255,6 +255,14 @@ configMaps: {}
 # This object should only contain empty keys for documentation purposes.
 secrets: {}
 
+# Credentials for pulling from private registries, keyed by server. Don't add them
+# here either.
+imagePullSecrets: {}
+#  private:
+#    ghcr.io:
+#      username: someone
+#      password: a-token
+
 persistentVolumeClaims: {}
 #  default:
 #      storageClassName: slow

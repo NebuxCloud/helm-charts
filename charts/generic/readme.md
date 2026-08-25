@@ -288,6 +288,30 @@ secrets:
     #SUPER_SECRET: proto://my-fancy-software:<password>@service:1234
 ```
 
+### Pulling from a private registry
+
+Every `imagePullSecrets` entry renders a `kubernetes.io/dockerconfigjson` secret that a
+workload references like any other resource. The entry is a map of registry servers to
+credentials, as the format itself is, so one secret covers as many registries as you
+need and the kubelet picks the one matching each image. Entries always carry their key,
+since the release's own name belongs to its `secrets`.
+
+```yaml
+imagePullSecrets:
+  private:
+    ghcr.io:
+      username: someone
+      password: a-token
+    quay.io:
+      username: someone-else
+      password: another-token
+
+workloads:
+  web:
+    imagePullSecrets:
+      - name: "@private"
+```
+
 ### Blue-green release
 
 The values file only *enables* the strategy: the rollout state (`currentSlot`,

@@ -73,6 +73,15 @@
 {{- end -}}
 {{- end -}}
 
+{{/* Render a docker config from a map of registry servers to credentials. */}}
+{{- define "nebux-generic.dockerConfig" -}}
+{{- $auths := dict -}}
+{{- range $server, $credential := . -}}
+{{- $_ := set $auths $server (dict "username" $credential.username "password" $credential.password "auth" (printf "%s:%s" $credential.username $credential.password | b64enc)) -}}
+{{- end -}}
+{{ dict "auths" $auths | toJson }}
+{{- end -}}
+
 {{/* Render what Kubernetes wants comma-separated, from a list or a string. */}}
 {{- define "nebux-generic.csv" -}}
 {{- if kindIs "string" . -}}
